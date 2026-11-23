@@ -1,0 +1,17 @@
+{
+  "name": "حسابداری فروشگاه پلاسکو",
+  "short_name": "پلاسکو",
+  "start_url": "/dashboard",
+  "display": "standalone",
+  "background_color": "#eef2ec",
+  "theme_color": "#1b6b54",
+  "dir": "rtl",
+  "lang": "fa",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}
