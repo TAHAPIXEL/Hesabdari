@@ -3,10 +3,9 @@
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { formatRial } from '@/lib/money'
 import { formatJalali } from '@/lib/jalali'
 import type { Invoice } from '@/lib/types'
-import { Badge, Empty, Spinner, statusFa, statusKind } from '@/components/ui'
+import { Badge, Empty, Money, Spinner, statusFa, statusKind } from '@/components/ui'
 
 export default function SalesPage() {
   const [rows, setRows] = useState<Invoice[]>([])
@@ -48,7 +47,7 @@ export default function SalesPage() {
                 </div>
               </div>
               <div style={{ textAlign: 'left' }}>
-                <div className="money">{formatRial(s.total)}</div>
+                <Money n={s.total} />
                 <Badge kind={statusKind(s.status)}>{statusFa(s.status)}</Badge>
               </div>
             </Link>

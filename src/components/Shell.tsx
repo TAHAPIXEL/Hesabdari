@@ -4,8 +4,13 @@ import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { useEffect, useState, type ReactNode } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import { findByBarcode } from '@/lib/catalog'
+import { formatQty, formatRial } from '@/lib/money'
 import { ToastProvider } from './Toast'
 import { formatJalaliLong, todayIso } from '@/lib/jalali'
+import { Scanner, ScanIcon } from './Scanner'
+import { Button } from './ui'
+import type { Product } from '@/lib/types'
 
 const NAV = [
   { href: '/dashboard', label: 'خانه', icon: HomeIcon },
@@ -32,13 +37,15 @@ export function Shell({ children }: { children: ReactNode }) {
   const [more, setMore] = useState(false)
   const [name, setName] = useState('فروشگاه پلاسکو')
   const [dark, setDark] = useState(false)
+  const [scan, setScan] = useState(false)
+  const [hit, setHit] = useState<Product | null>(null)
+  const [unknown, setUnknown] = useState('')
 
   useEffect(() => {
     const t = localStorage.getItem('theme') === 'dark'
     setDark(t)
     document.documentElement.setAttribute('data-theme', t ? 'dark' : 'light')
-    const supabase = createClient()
-    supabase
+    createClient()
       .from('company_settings')
       .select('name')
       .eq('id', 1)
@@ -55,9 +62,11 @@ export function Shell({ children }: { children: ReactNode }) {
     document.documentElement.setAttribute('data-theme', next ? 'dark' : 'light')
   }
 
-  async function logout() {
-    await createClient().auth.signOut()
-    router.replace('/login')
+  async function onCode(code: string) {
+    setScan(false)
+    const rows = await findByBarcode(code)
+    if (rows[0]) setHit(rows[0])
+    else setUnknown(code)
   }
 
   const moreActive = MORE.some((i) => path.startsWith(i.href))
@@ -75,6 +84,9 @@ export function Shell({ children }: { children: ReactNode }) {
               <span className="tiny">{formatJalaliLong(todayIso())}</span>
             </div>
           </div>
+          <button type="button" className="btn btn-block" style={{ marginBottom: 12 }} onClick={() => setScan(true)}>
+            <ScanIcon /> اسکن بارکد
+          </button>
           <nav className="nav-list">
             {NAV.map((i) => (
               <Link key={i.href} href={i.href} className={`nav-item ${path.startsWith(i.href) ? 'active' : ''}`}>
@@ -88,12 +100,9 @@ export function Shell({ children }: { children: ReactNode }) {
               </Link>
             ))}
           </nav>
-          <div style={{ marginTop: 'auto', padding: 8, display: 'grid', gap: 8 }}>
-            <button className="btn btn-ghost" type="button" onClick={toggleTheme}>
+          <div style={{ padding: 8 }}>
+            <button className="btn btn-ghost btn-block" type="button" onClick={toggleTheme}>
               {dark ? 'تم روشن' : 'تم تیره'}
-            </button>
-            <button className="btn btn-ghost" type="button" onClick={logout}>
-              خروج
             </button>
           </div>
         </aside>
@@ -101,12 +110,21 @@ export function Shell({ children }: { children: ReactNode }) {
         <div className="main">{children}</div>
 
         <nav className="bottom-nav no-print">
-          {NAV.map((i) => (
-            <Link key={i.href} href={i.href} className={path.startsWith(i.href) ? 'active' : ''}>
-              <i.icon />
-              {i.label}
-            </Link>
-          ))}
+          <Link href="/dashboard" className={path.startsWith('/dashboard') ? 'active' : ''}>
+            <HomeIcon />
+            خانه
+          </Link>
+          <Link href="/pos" className={path.startsWith('/pos') ? 'active' : ''}>
+            <CartIcon />
+            فروش
+          </Link>
+          <button type="button" className="scan-fab" onClick={() => setScan(true)} aria-label="اسکن بارکد">
+            <ScanIcon />
+          </button>
+          <Link href="/products" className={path.startsWith('/products') ? 'active' : ''}>
+            <BoxIcon />
+            کالا
+          </Link>
           <button type="button" className={more || moreActive ? 'active' : ''} onClick={() => setMore(true)}>
             <MoreIcon />
             بیشتر
@@ -127,9 +145,75 @@ export function Shell({ children }: { children: ReactNode }) {
               <button className="sheet-link" type="button" onClick={toggleTheme}>
                 {dark ? 'تم روشن' : 'تم تیره'}
               </button>
-              <button className="sheet-link" type="button" onClick={logout}>
-                خروج از حساب مشترک
-              </button>
+            </div>
+          </div>
+        ) : null}
+
+        {scan ? <Scanner onClose={() => setScan(false)} onResult={onCode} /> : null}
+
+        {hit ? (
+          <div className="sheet no-print" onClick={() => setHit(null)}>
+            <div className="sheet-card" onClick={(e) => e.stopPropagation()} style={{ padding: 16 }}>
+              <h3>{hit.name}</h3>
+              <p className="tiny">
+                {hit.barcode ? `بارکد ${hit.barcode}` : ''} {hit.kind === 'goods' ? `موجودی ${formatQty(hit.stock)} ${hit.unit}` : 'خدمات'}
+              </p>
+              <p className="money" style={{ margin: '8px 0 14px' }}>
+                {formatRial(hit.sell_price)}
+              </p>
+              <Button
+                block
+                onClick={() => {
+                  sessionStorage.setItem('scan-add', hit.id)
+                  setHit(null)
+                  router.push('/pos')
+                }}
+              >
+                افزودن به فروش
+              </Button>
+              <Button
+                block
+                variant="ghost"
+                style={{ marginTop: 8 }}
+                onClick={() => {
+                  sessionStorage.setItem('scan-edit', hit.id)
+                  setHit(null)
+                  router.push('/products')
+                }}
+              >
+                ویرایش کالا
+              </Button>
+              <Button
+                block
+                variant="ghost"
+                style={{ marginTop: 8 }}
+                onClick={() => {
+                  sessionStorage.setItem('scan-stock', hit.id)
+                  setHit(null)
+                  router.push('/inventory')
+                }}
+              >
+                کاردکس انبار
+              </Button>
+            </div>
+          </div>
+        ) : null}
+
+        {unknown ? (
+          <div className="sheet no-print" onClick={() => setUnknown('')}>
+            <div className="sheet-card" onClick={(e) => e.stopPropagation()} style={{ padding: 16 }}>
+              <h3>کالا پیدا نشد</h3>
+              <p className="tiny">بارکد {unknown} در فهرست نیست.</p>
+              <Button
+                block
+                onClick={() => {
+                  sessionStorage.setItem('scan-new', unknown)
+                  setUnknown('')
+                  router.push('/products')
+                }}
+              >
+                ثبت کالای جدید با این بارکد
+              </Button>
             </div>
           </div>
         ) : null}

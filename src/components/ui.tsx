@@ -2,6 +2,8 @@
 
 import { useEffect, useMemo, useState, type ButtonHTMLAttributes, type InputHTMLAttributes, type ReactNode, type SelectHTMLAttributes, type TextareaHTMLAttributes } from 'react'
 import { WEEKDAYS, formatJalali, isoToJalali, jalaliToIso, monthDays, pad2, todayIso, todayJalali, toFaDigits } from '@/lib/jalali'
+import { formatRial } from '@/lib/money'
+import { useToast } from './Toast'
 
 export function Button({
   variant = 'primary',
@@ -166,6 +168,46 @@ export function DateField({ value, onChange, label }: { value: string; onChange:
   )
   if (!label) return inner
   return <Field label={label}>{inner}</Field>
+}
+
+export function CopyBtn({ text }: { text: string }) {
+  const toast = useToast()
+  return (
+    <button
+      type="button"
+      className="copy-btn no-print"
+      onClick={async (e) => {
+        e.preventDefault()
+        e.stopPropagation()
+        try {
+          await navigator.clipboard.writeText(text)
+          toast.push('کپی شد')
+        } catch {
+          toast.push('کپی نشد', 'err')
+        }
+      }}
+    >
+      کپی
+    </button>
+  )
+}
+
+export function Money({ n, copy = true }: { n: number; copy?: boolean }) {
+  return (
+    <span className="money-line">
+      <span className="money">{formatRial(n)}</span>
+      {copy ? <CopyBtn text={String(Math.round(n || 0))} /> : null}
+    </span>
+  )
+}
+
+export function CopyText({ value }: { value: string }) {
+  return (
+    <span className="money-line">
+      <span>{value}</span>
+      <CopyBtn text={value} />
+    </span>
+  )
 }
 
 export function statusFa(s: string) {

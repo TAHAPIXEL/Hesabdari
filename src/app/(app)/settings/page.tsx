@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { Button, Field, Input } from '@/components/ui'
+import { Button, CopyBtn, Field, Input } from '@/components/ui'
 import { useToast } from '@/components/Toast'
 
 export default function SettingsPage() {
@@ -17,9 +17,6 @@ export default function SettingsPage() {
     vat_percent: '0',
     allow_negative_stock: false,
   })
-  const [pw, setPw] = useState('')
-  const [pw2, setPw2] = useState('')
-
   useEffect(() => {
     createClient()
       .from('company_settings')
@@ -60,16 +57,6 @@ export default function SettingsPage() {
     toast.push('تنظیمات ذخیره شد. نام فروشگاه در فاکتور و بالای سایت عوض می‌شود.')
   }
 
-  async function changePass() {
-    if (pw.length < 8) return toast.push('رمز حداقل ۸ کاراکتر.', 'err')
-    if (pw !== pw2) return toast.push('تکرار رمز مطابقت ندارد.', 'err')
-    const { error } = await createClient().auth.updateUser({ password: pw })
-    if (error) return toast.push(error.message, 'err')
-    toast.push('رمز حساب مشترک عوض شد.')
-    setPw('')
-    setPw2('')
-  }
-
   return (
     <div>
       <div className="topbar">
@@ -85,13 +72,22 @@ export default function SettingsPage() {
           <Input value={form.legal_name} onChange={(e) => setForm({ ...form, legal_name: e.target.value })} />
         </Field>
         <Field label="شناسه ملی">
-          <Input value={form.national_id} onChange={(e) => setForm({ ...form, national_id: e.target.value })} />
+          <div className="money-line">
+            <Input value={form.national_id} onChange={(e) => setForm({ ...form, national_id: e.target.value })} />
+            {form.national_id ? <CopyBtn text={form.national_id} /> : null}
+          </div>
         </Field>
         <Field label="کد اقتصادی">
-          <Input value={form.economic_code} onChange={(e) => setForm({ ...form, economic_code: e.target.value })} />
+          <div className="money-line">
+            <Input value={form.economic_code} onChange={(e) => setForm({ ...form, economic_code: e.target.value })} />
+            {form.economic_code ? <CopyBtn text={form.economic_code} /> : null}
+          </div>
         </Field>
         <Field label="تلفن">
-          <Input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
+          <div className="money-line">
+            <Input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
+            {form.phone ? <CopyBtn text={form.phone} /> : null}
+          </div>
         </Field>
         <Field label="آدرس">
           <Input value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} />
@@ -109,19 +105,6 @@ export default function SettingsPage() {
         </label>
         <Button block onClick={save}>
           ذخیره مشخصات
-        </Button>
-      </div>
-      <div className="card" style={{ marginTop: 12 }}>
-        <h3>رمز حساب مشترک</h3>
-        <p className="tiny">همه همکاران با همین ایمیل و رمز وارد می‌شوند.</p>
-        <Field label="رمز جدید">
-          <Input type="password" value={pw} onChange={(e) => setPw(e.target.value)} />
-        </Field>
-        <Field label="تکرار رمز">
-          <Input type="password" value={pw2} onChange={(e) => setPw2(e.target.value)} />
-        </Field>
-        <Button block variant="ghost" onClick={changePass}>
-          تغییر رمز
         </Button>
       </div>
     </div>

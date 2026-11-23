@@ -2,10 +2,10 @@
 
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { formatRial, parseRial } from '@/lib/money'
+import { parseRial } from '@/lib/money'
 import { formatJalali, jalaliYearOf, todayIso } from '@/lib/jalali'
 import type { CashAccount, Expense } from '@/lib/types'
-import { Button, DateField, Empty, Field, Input, Modal, Select, Spinner } from '@/components/ui'
+import { Button, DateField, Empty, Field, Input, Modal, Money, Select, Spinner } from '@/components/ui'
 import { useToast } from '@/components/Toast'
 
 export default function ExpensesPage() {
@@ -64,7 +64,7 @@ export default function ExpensesPage() {
                 <strong>{e.title}</strong>
                 <div className="tiny">{formatJalali(e.spent_at)}</div>
               </div>
-              <div className="money">{formatRial(e.amount)}</div>
+              <Money n={e.amount} />
             </div>
           ))}
         </div>

@@ -30,6 +30,5 @@ export function ToastProvider({ children }: { children: ReactNode }) {
 
 export function useToast() {
   const c = useContext(Ctx)
-  if (!c) throw new Error('ToastProvider missing')
-  return c
+  return c || { push: () => undefined }
 }

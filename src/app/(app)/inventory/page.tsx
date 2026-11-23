@@ -2,10 +2,12 @@
 
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { formatQty, formatRial, parseQty } from '@/lib/money'
+import { findByBarcode } from '@/lib/catalog'
+import { formatQty, parseQty } from '@/lib/money'
 import { formatJalali, todayIso } from '@/lib/jalali'
 import type { Product, StockMove } from '@/lib/types'
-import { Button, Field, Input, Modal, Spinner } from '@/components/ui'
+import { Button, Field, Input, Modal, Money, Spinner } from '@/components/ui'
+import { SearchBar } from '@/components/Scanner'
 import { useToast } from '@/components/Toast'
 
 export default function InventoryPage() {
@@ -14,6 +16,7 @@ export default function InventoryPage() {
   const [moves, setMoves] = useState<StockMove[]>([])
   const [sel, setSel] = useState<Product | null>(null)
   const [open, setOpen] = useState(false)
+  const [q, setQ] = useState('')
   const [qty, setQty] = useState('')
   const [notes, setNotes] = useState('اصلاح موجودی')
   const [loading, setLoading] = useState(true)
@@ -27,6 +30,26 @@ export default function InventoryPage() {
   useEffect(() => {
     load()
   }, [])
+
+  useEffect(() => {
+    const id = sessionStorage.getItem('scan-stock')
+    if (!id) return
+    sessionStorage.removeItem('scan-stock')
+    createClient()
+      .from('products')
+      .select('*')
+      .eq('id', id)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (data) openKardex(data as Product)
+      })
+  }, [])
+
+  async function onScan(code: string) {
+    const found = await findByBarcode(code)
+    if (found[0]) openKardex(found[0])
+    else toast.push(`بارکد ${code} پیدا نشد`, 'err')
+  }
 
   async function openKardex(p: Product) {
     setSel(p)
@@ -63,11 +86,18 @@ export default function InventoryPage() {
       <div className="topbar">
         <div>
           <h1>انبار</h1>
-          <div className="tiny">ارزش موجودی با قیمت خرید: {formatRial(value)}</div>
+          <div className="tiny">
+            ارزش موجودی با قیمت خرید: <Money n={value} />
+          </div>
         </div>
       </div>
+      <div style={{ marginBottom: 12 }}>
+        <SearchBar value={q} onChange={setQ} onScan={onScan} placeholder="جستجو یا اسکن کالا در انبار" />
+      </div>
       <div className="card">
-        {rows.map((p) => (
+        {rows
+          .filter((p) => !q.trim() || [p.name, p.barcode, p.sku].some((x) => (x || '').includes(q.trim())))
+          .map((p) => (
           <button key={p.id} type="button" className="list-item" style={{ width: '100%', background: 'none', border: 0 }} onClick={() => openKardex(p)}>
             <div style={{ textAlign: 'right' }}>
               <strong>{p.name}</strong>

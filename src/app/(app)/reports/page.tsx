@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { formatQty, formatRial } from '@/lib/money'
 import { jalaliToIso, todayIso, todayJalali } from '@/lib/jalali'
-import { DateField, Spinner } from '@/components/ui'
+import { DateField, Money, Spinner } from '@/components/ui'
 
 type Top = { name: string; qty: number; sales: number; profit: number }
 
@@ -70,23 +70,33 @@ export default function ReportsPage() {
           <div className="grid stats" style={{ marginTop: 12 }}>
             <div className="card stat-card">
               <div className="label">فروش</div>
-              <div className="value">{formatRial(sales)}</div>
+              <div className="value">
+                <Money n={sales} />
+              </div>
             </div>
             <div className="card stat-card">
               <div className="label">بهای تمام‌شده</div>
-              <div className="value">{formatRial(cogs)}</div>
+              <div className="value">
+                <Money n={cogs} />
+              </div>
             </div>
             <div className="card stat-card">
               <div className="label">سود ناخالص</div>
-              <div className="value">{formatRial(profit)}</div>
+              <div className="value">
+                <Money n={profit} />
+              </div>
             </div>
             <div className="card stat-card">
               <div className="label">هزینه‌ها</div>
-              <div className="value">{formatRial(exp)}</div>
+              <div className="value">
+                <Money n={exp} />
+              </div>
             </div>
             <div className="card stat-card accent">
               <div className="label">سود خالص</div>
-              <div className="value">{formatRial(profit - exp)}</div>
+              <div className="value">
+                <Money n={profit - exp} />
+              </div>
             </div>
           </div>
           <div className="card" style={{ marginTop: 12 }}>

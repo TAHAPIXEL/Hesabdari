@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from 'next'
 import './globals.css'
+import { Guard } from '@/components/Guard'
 
 export const metadata: Metadata = {
   title: 'فروشگاه پلاسکو | حسابداری',
@@ -26,7 +27,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           }}
         />
       </head>
-      <body>{children}</body>
+      <body>
+        <Guard>{children}</Guard>
+      </body>
     </html>
   )
 }

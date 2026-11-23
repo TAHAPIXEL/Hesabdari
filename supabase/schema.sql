@@ -277,11 +277,12 @@ begin
     'transfers','journal_entries','journal_lines','doc_counters'
   ] loop
     execute format('drop policy if exists auth_all on public.%I', t);
-    execute format('create policy auth_all on public.%I for all to authenticated using (true) with check (true)', t);
+    execute format('drop policy if exists public_all on public.%I', t);
+    execute format('create policy public_all on public.%I for all to anon, authenticated using (true) with check (true)', t);
   end loop;
 end $$;
 
 grant usage on schema public to anon, authenticated;
-grant all on all tables in schema public to authenticated;
-grant all on all sequences in schema public to authenticated;
-grant execute on all functions in schema public to authenticated;
+grant all on all tables in schema public to anon, authenticated;
+grant all on all sequences in schema public to anon, authenticated;
+grant execute on all functions in schema public to anon, authenticated;

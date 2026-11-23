@@ -2,9 +2,8 @@
 
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { formatRial } from '@/lib/money'
 import { formatJalali } from '@/lib/jalali'
-import { Spinner } from '@/components/ui'
+import { CopyText, Money, Spinner } from '@/components/ui'
 
 type Entry = { id: string; number: string; entry_date: string; description: string | null; lines?: { debit: number; credit: number; account_code: string; description: string | null }[] }
 
@@ -31,7 +30,9 @@ export default function JournalPage() {
       {rows.map((e) => (
         <div key={e.id} className="card" style={{ marginBottom: 10 }}>
           <div className="row">
-            <strong>{e.number}</strong>
+            <strong>
+              <CopyText value={e.number} />
+            </strong>
             <span className="tiny">{formatJalali(e.entry_date)}</span>
           </div>
           <p className="tiny">{e.description}</p>
@@ -40,8 +41,9 @@ export default function JournalPage() {
               <span>
                 {l.account_code} {l.description}
               </span>
-              <span className="money">
-                {Number(l.debit) ? `بدهکار ${formatRial(l.debit)}` : `بستانکار ${formatRial(l.credit)}`}
+              <span>
+                {Number(l.debit) ? 'بدهکار ' : 'بستانکار '}
+                <Money n={Number(l.debit) || Number(l.credit)} />
               </span>
             </div>
           ))}

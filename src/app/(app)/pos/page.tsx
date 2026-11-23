@@ -1,18 +1,19 @@
 'use client'
 
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { formatQty, formatRial, lineTotal, parseQty, parseRial } from '@/lib/money'
+import { findByBarcode, searchProducts } from '@/lib/catalog'
+import { formatQty, lineTotal, parseQty, parseRial } from '@/lib/money'
 import { jalaliYearOf, todayIso } from '@/lib/jalali'
 import type { CartLine, CashAccount, Party, Product } from '@/lib/types'
-import { Button, Field, Input, Select } from '@/components/ui'
+import { Button, Field, Input, Money, Select } from '@/components/ui'
+import { SearchBar } from '@/components/Scanner'
 import { useToast } from '@/components/Toast'
 
 export default function PosPage() {
   const router = useRouter()
   const toast = useToast()
-  const searchRef = useRef<HTMLInputElement>(null)
   const [q, setQ] = useState('')
   const [found, setFound] = useState<Product[]>([])
   const [cart, setCart] = useState<CartLine[]>([])
@@ -25,48 +26,6 @@ export default function PosPage() {
   const [notes, setNotes] = useState('')
   const [busy, setBusy] = useState(false)
   const [vatDefault, setVatDefault] = useState(0)
-
-  useEffect(() => {
-    const supabase = createClient()
-    searchRef.current?.focus()
-    supabase.from('parties').select('*').eq('is_active', true).order('name').then(({ data }) => setParties((data || []) as Party[]))
-    supabase.from('cash_accounts').select('*').eq('is_active', true).order('name').then(({ data }) => {
-      const rows = (data || []) as CashAccount[]
-      setCashes(rows)
-      if (rows[0]) setCashId(rows[0].id)
-    })
-    supabase.from('company_settings').select('vat_percent').eq('id', 1).maybeSingle().then(({ data }) => {
-      if (data) setVatDefault(Number(data.vat_percent || 0))
-    })
-  }, [])
-
-  useEffect(() => {
-    const t = setTimeout(async () => {
-      const query = q.trim().replace(/[%_,()]/g, '')
-      if (!query) {
-        setFound([])
-        return
-      }
-      const supabase = createClient()
-      const { data } = await supabase
-        .from('products')
-        .select('*')
-        .eq('is_active', true)
-        .or(`name.ilike.%${query}%,barcode.eq.${query},sku.eq.${query}`)
-        .limit(20)
-      const rows = (data || []) as Product[]
-      const exact = rows.find((p) => p.barcode === query || p.sku === query)
-      if (exact && /^\d{4,}$/.test(query)) {
-        addProduct(exact)
-        setQ('')
-        setFound([])
-        return
-      }
-      setFound(rows)
-    }, 180)
-    return () => clearTimeout(t)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [q])
 
   function addProduct(p: Product) {
     setCart((c) => {
@@ -93,11 +52,74 @@ export default function PosPage() {
         },
       ]
     })
+    toast.push(`${p.name} اضافه شد`)
+  }
+
+  useEffect(() => {
+    const supabase = createClient()
+    supabase.from('parties').select('*').eq('is_active', true).order('name').then(({ data }) => setParties((data || []) as Party[]))
+    supabase.from('cash_accounts').select('*').eq('is_active', true).order('name').then(({ data }) => {
+      const rows = (data || []) as CashAccount[]
+      setCashes(rows)
+      if (rows[0]) setCashId(rows[0].id)
+    })
+    supabase.from('company_settings').select('vat_percent').eq('id', 1).maybeSingle().then(({ data }) => {
+      if (data) setVatDefault(Number(data.vat_percent || 0))
+    })
+  }, [])
+
+  useEffect(() => {
+    const id = sessionStorage.getItem('scan-add')
+    if (!id) return
+    sessionStorage.removeItem('scan-add')
+    createClient()
+      .from('products')
+      .select('*')
+      .eq('id', id)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (data) addProduct(data as Product)
+      })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  useEffect(() => {
+    const t = setTimeout(async () => {
+      const query = q.trim()
+      if (!query) {
+        setFound([])
+        return
+      }
+      const rows = await searchProducts(query)
+      const exact = rows.find((p) => p.barcode === query || p.sku === query)
+      if (exact && /^\d{4,}$/.test(query)) {
+        addProduct(exact)
+        setQ('')
+        setFound([])
+        return
+      }
+      setFound(rows)
+    }, 160)
+    return () => clearTimeout(t)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [q])
+
+  async function onScan(code: string) {
+    const rows = await findByBarcode(code)
+    if (rows[0]) {
+      addProduct(rows[0])
+      setQ('')
+      setFound([])
+    } else {
+      toast.push(`بارکد ${code} پیدا نشد`, 'err')
+      sessionStorage.setItem('scan-new', code)
+      router.push('/products')
+    }
   }
 
   const subtotal = useMemo(() => cart.reduce((s, l) => s + lineTotal(l.qty, l.unit_price, l.discount), 0), [cart])
   const vat = useMemo(
-    () => cart.reduce((s, l) => s + Math.round(lineTotal(l.qty, l.unit_price, l.discount) * (l.vat_percent || 0) / 100), 0),
+    () => cart.reduce((s, l) => s + Math.round((lineTotal(l.qty, l.unit_price, l.discount) * (l.vat_percent || 0)) / 100), 0),
     [cart],
   )
   const total = subtotal + vat
@@ -112,9 +134,8 @@ export default function PosPage() {
     if (method !== 'credit' && !cashId) return toast.push('صندوق را انتخاب کنید.', 'err')
     if (method === 'credit' && !partyId) return toast.push('برای فروش نسیه مشتری را انتخاب کنید.', 'err')
     setBusy(true)
-    const supabase = createClient()
     const paidN = method === 'credit' ? 0 : parseRial(paid)
-    const { data, error } = await supabase.rpc('create_sale', {
+    const { data, error } = await createClient().rpc('create_sale', {
       p_party_id: partyId || null,
       p_cash_account_id: method === 'credit' ? null : cashId || null,
       p_items: cart.map((l) => ({
@@ -144,25 +165,16 @@ export default function PosPage() {
         <div className="topbar">
           <h1>فروش سریع</h1>
         </div>
-        <div className="search">
-          <input
-            ref={searchRef}
-            value={q}
-            onChange={(e) => setQ(e.target.value)}
-            placeholder="نام، بارکد یا کد کالا"
-          />
-        </div>
+        <SearchBar value={q} onChange={setQ} onScan={onScan} placeholder="جستجو یا اسکن بارکد" />
         <div className="card" style={{ marginTop: 12 }}>
-          {found.length === 0 && !q ? <p className="muted">کالا را جستجو کنید یا بارکد بزنید.</p> : null}
+          {found.length === 0 && !q ? <p className="muted">نام را بنویس یا دکمه اسکن را بزن.</p> : null}
           {found.map((p) => (
             <button key={p.id} type="button" className="list-item" style={{ width: '100%', background: 'none', border: 0 }} onClick={() => addProduct(p)}>
               <div style={{ textAlign: 'right' }}>
                 <strong>{p.name}</strong>
-                <div className="tiny">
-                  {p.kind === 'goods' ? `موجودی ${formatQty(p.stock)} ${p.unit}` : 'خدمات'}
-                </div>
+                <div className="tiny">{p.kind === 'goods' ? `موجودی ${formatQty(p.stock)} ${p.unit}` : 'خدمات'}</div>
               </div>
-              <div className="money">{formatRial(p.sell_price)}</div>
+              <Money n={p.sell_price} copy={false} />
             </button>
           ))}
         </div>
@@ -170,12 +182,14 @@ export default function PosPage() {
 
       <div className="card">
         <h3>سبد</h3>
-        {cart.length === 0 ? <p className="muted">خالی</p> : null}
+        {cart.length === 0 ? <p className="muted">خالی — اسکن کن یا جستجو کن</p> : null}
         {cart.map((l, idx) => (
           <div key={l.key} className="cart-line">
             <div>
               <strong>{l.description}</strong>
-              <div className="tiny">{formatRial(l.unit_price)}</div>
+              <div className="tiny">
+                <Money n={l.unit_price} copy={false} />
+              </div>
               <div className="qty" style={{ marginTop: 6 }}>
                 <button type="button" onClick={() => setCart((c) => c.map((x, i) => (i === idx ? { ...x, qty: Math.max(1, x.qty - 1) } : x)))}>
                   −
@@ -193,7 +207,7 @@ export default function PosPage() {
               </div>
             </div>
             <div style={{ textAlign: 'left' }}>
-              <div className="money">{formatRial(lineTotal(l.qty, l.unit_price, l.discount))}</div>
+              <Money n={lineTotal(l.qty, l.unit_price, l.discount)} copy={false} />
               <button type="button" className="tiny" style={{ background: 'none', border: 0, color: 'var(--danger)' }} onClick={() => setCart((c) => c.filter((_, i) => i !== idx))}>
                 حذف
               </button>
@@ -203,27 +217,29 @@ export default function PosPage() {
 
         <div className="list-item">
           <span>جمع جزء</span>
-          <span className="money">{formatRial(subtotal)}</span>
+          <Money n={subtotal} />
         </div>
         {vat ? (
           <div className="list-item">
             <span>مالیات</span>
-            <span className="money">{formatRial(vat)}</span>
+            <Money n={vat} />
           </div>
         ) : null}
         <div className="list-item">
           <strong>قابل پرداخت</strong>
-          <strong className="money">{formatRial(total)}</strong>
+          <Money n={total} />
         </div>
 
         <Field label="مشتری">
           <Select value={partyId} onChange={(e) => setPartyId(e.target.value)}>
             <option value="">مشتری متفرقه</option>
-            {parties.filter((p) => p.kind !== 'supplier').map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.name}
-              </option>
-            ))}
+            {parties
+              .filter((p) => p.kind !== 'supplier')
+              .map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.name}
+                </option>
+              ))}
           </Select>
         </Field>
         <Field label="نحوه تسویه">

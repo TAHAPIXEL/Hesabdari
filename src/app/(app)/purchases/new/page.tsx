@@ -3,10 +3,12 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { formatRial, lineTotal, parseQty, parseRial } from '@/lib/money'
+import { lineTotal, parseQty, parseRial } from '@/lib/money'
 import { jalaliYearOf, todayIso } from '@/lib/jalali'
 import type { CartLine, CashAccount, Party, Product } from '@/lib/types'
-import { Button, DateField, Field, Input, Select } from '@/components/ui'
+import { Button, DateField, Field, Input, Money, Select } from '@/components/ui'
+import { SearchBar } from '@/components/Scanner'
+import { findByBarcode, searchProducts } from '@/lib/catalog'
 import { useToast } from '@/components/Toast'
 
 export default function NewPurchasePage() {
@@ -38,16 +40,16 @@ export default function NewPurchasePage() {
   useEffect(() => {
     const t = setTimeout(async () => {
       if (!q.trim()) return setFound([])
-      const { data } = await createClient()
-        .from('products')
-        .select('*')
-        .eq('is_active', true)
-        .ilike('name', `%${q.trim()}%`)
-        .limit(15)
-      setFound((data || []) as Product[])
-    }, 180)
+      setFound(await searchProducts(q.trim(), 15))
+    }, 160)
     return () => clearTimeout(t)
   }, [q])
+
+  async function onScan(code: string) {
+    const rows = await findByBarcode(code)
+    if (rows[0]) add(rows[0])
+    else toast.push(`بارکد ${code} پیدا نشد`, 'err')
+  }
 
   function add(p: Product) {
     setCart((c) => [
@@ -110,13 +112,11 @@ export default function NewPurchasePage() {
         <h1>خرید جدید</h1>
       </div>
       <div className="card">
-        <div className="search">
-          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="جستجوی کالا برای افزودن" />
-        </div>
+        <SearchBar value={q} onChange={setQ} onScan={onScan} placeholder="جستجو یا اسکن بارکد خرید" />
         {found.map((p) => (
           <button key={p.id} type="button" className="list-item" style={{ width: '100%', background: 'none', border: 0 }} onClick={() => add(p)}>
             <span>{p.name}</span>
-            <span className="tiny">خرید {formatRial(p.buy_price)}</span>
+            <Money n={p.buy_price} copy={false} />
           </button>
         ))}
         {cart.map((l, idx) => (
@@ -133,7 +133,7 @@ export default function NewPurchasePage() {
               </Field>
             </div>
             <div>
-              <div className="money">{formatRial(lineTotal(l.qty, l.unit_price, l.discount))}</div>
+              <Money n={lineTotal(l.qty, l.unit_price, l.discount)} copy={false} />
               <button type="button" className="tiny" style={{ background: 'none', border: 0, color: 'var(--danger)' }} onClick={() => setCart((c) => c.filter((_, i) => i !== idx))}>
                 حذف
               </button>
@@ -142,7 +142,7 @@ export default function NewPurchasePage() {
         ))}
         <div className="list-item">
           <strong>جمع</strong>
-          <strong className="money">{formatRial(total)}</strong>
+          <Money n={total} />
         </div>
         <Field label="تامین‌کننده">
           <Select value={partyId} onChange={(e) => setPartyId(e.target.value)}>

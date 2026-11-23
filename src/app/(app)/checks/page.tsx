@@ -2,10 +2,10 @@
 
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { formatRial, parseRial } from '@/lib/money'
+import { parseRial } from '@/lib/money'
 import { formatJalali, todayIso } from '@/lib/jalali'
 import type { CashAccount, CheckRow, Party } from '@/lib/types'
-import { Badge, Button, DateField, Empty, Field, Input, Modal, Select, Spinner, statusFa, statusKind } from '@/components/ui'
+import { Badge, Button, CopyText, DateField, Empty, Field, Input, Modal, Money, Select, Spinner, statusFa, statusKind } from '@/components/ui'
 import { useToast } from '@/components/Toast'
 
 export default function ChecksPage() {
@@ -84,7 +84,9 @@ export default function ChecksPage() {
                 <div className="tiny">
                   {c.party?.name || '—'} — سررسید {formatJalali(c.due_at)}
                 </div>
-                <div className="tiny">{c.number} {c.bank_name}</div>
+                <div className="tiny">
+                  {c.number ? <CopyText value={c.number} /> : null} {c.bank_name}
+                </div>
                 <div style={{ display: 'flex', gap: 6, marginTop: 6 }}>
                   {c.status === 'pending' || c.status === 'deposited' ? (
                     <>
@@ -95,7 +97,7 @@ export default function ChecksPage() {
                 </div>
               </div>
               <div style={{ textAlign: 'left' }}>
-                <div className="money">{formatRial(c.amount)}</div>
+                <Money n={c.amount} />
                 <Badge kind={statusKind(c.status)}>{statusFa(c.status)}</Badge>
               </div>
             </div>

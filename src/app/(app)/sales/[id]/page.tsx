@@ -6,7 +6,7 @@ import { createClient } from '@/lib/supabase/client'
 import { formatQty, formatRial } from '@/lib/money'
 import { formatJalaliLong } from '@/lib/jalali'
 import type { Company, Invoice, InvoiceItem } from '@/lib/types'
-import { Badge, Button, Spinner, statusFa, statusKind } from '@/components/ui'
+import { Badge, Button, CopyText, Money, Spinner, statusFa, statusKind } from '@/components/ui'
 import { useToast } from '@/components/Toast'
 
 export default function SaleDetailPage() {
@@ -37,7 +37,9 @@ export default function SaleDetailPage() {
   return (
     <div>
       <div className="topbar no-print">
-        <h1>{inv.number}</h1>
+        <h1>
+          <CopyText value={inv.number} />
+        </h1>
         <div style={{ display: 'flex', gap: 8 }}>
           <Button variant="ghost" onClick={() => window.print()}>
             چاپ
@@ -89,25 +91,25 @@ export default function SaleDetailPage() {
         </div>
         <div className="list-item">
           <span>جمع جزء</span>
-          <span className="money">{formatRial(inv.subtotal)}</span>
+          <Money n={inv.subtotal} />
         </div>
         {inv.vat ? (
           <div className="list-item">
             <span>مالیات</span>
-            <span className="money">{formatRial(inv.vat)}</span>
+            <Money n={inv.vat} />
           </div>
         ) : null}
         <div className="list-item">
           <strong>جمع کل</strong>
-          <strong className="money">{formatRial(inv.total)}</strong>
+          <Money n={inv.total} />
         </div>
         <div className="list-item">
           <span>دریافت‌شده</span>
-          <span className="money">{formatRial(inv.paid)}</span>
+          <Money n={inv.paid} />
         </div>
         <div className="list-item">
           <span>مانده</span>
-          <span className="money">{formatRial(inv.total - inv.paid)}</span>
+          <Money n={inv.total - inv.paid} />
         </div>
         {inv.notes ? <p className="tiny">{inv.notes}</p> : null}
       </div>

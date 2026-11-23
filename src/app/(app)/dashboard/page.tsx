@@ -3,10 +3,23 @@
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { formatRial } from '@/lib/money'
 import { formatJalaliLong, jalaliToIso, todayIso, todayJalali } from '@/lib/jalali'
 import type { DashboardStats, Invoice, Product } from '@/lib/types'
-import { Spinner } from '@/components/ui'
+import { Money, Spinner } from '@/components/ui'
+
+const EMPTY: DashboardStats = {
+  today_sales: 0,
+  today_count: 0,
+  month_sales: 0,
+  month_profit: 0,
+  cash_total: 0,
+  bank_total: 0,
+  receivables: 0,
+  payables: 0,
+  low_stock: 0,
+  pending_checks_in: 0,
+  pending_checks_out: 0,
+}
 
 export default function DashboardPage() {
   const [stats, setStats] = useState<DashboardStats | null>(null)
@@ -23,7 +36,7 @@ export default function DashboardPage() {
       if (data?.name) setName(data.name)
     })
     supabase.rpc('dashboard_stats', { p_today: today, p_month_from: from, p_month_to: today }).then(({ data }) => {
-      if (data) setStats(data as DashboardStats)
+      setStats(data ? (data as DashboardStats) : EMPTY)
     })
     supabase
       .from('invoices')
@@ -61,34 +74,48 @@ export default function DashboardPage() {
       <div className="grid stats">
         <div className="card stat-card accent">
           <div className="label">فروش امروز</div>
-          <div className="value">{formatRial(Number(stats.today_sales))}</div>
+          <div className="value">
+            <Money n={Number(stats.today_sales)} />
+          </div>
           <div className="tiny" style={{ color: 'rgba(255,255,255,.8)' }}>
             {stats.today_count} فاکتور
           </div>
         </div>
         <div className="card stat-card">
           <div className="label">سود این ماه</div>
-          <div className="value">{formatRial(Number(stats.month_profit))}</div>
+          <div className="value">
+            <Money n={Number(stats.month_profit)} />
+          </div>
         </div>
         <div className="card stat-card">
           <div className="label">صندوق و تنخواه</div>
-          <div className="value">{formatRial(Number(stats.cash_total))}</div>
+          <div className="value">
+            <Money n={Number(stats.cash_total)} />
+          </div>
         </div>
         <div className="card stat-card">
           <div className="label">بانک</div>
-          <div className="value">{formatRial(Number(stats.bank_total))}</div>
+          <div className="value">
+            <Money n={Number(stats.bank_total)} />
+          </div>
         </div>
         <div className="card stat-card">
           <div className="label">بدهکاران</div>
-          <div className="value">{formatRial(Number(stats.receivables))}</div>
+          <div className="value">
+            <Money n={Number(stats.receivables)} />
+          </div>
         </div>
         <div className="card stat-card">
           <div className="label">بستانکاران</div>
-          <div className="value">{formatRial(Number(stats.payables))}</div>
+          <div className="value">
+            <Money n={Number(stats.payables)} />
+          </div>
         </div>
         <div className="card stat-card">
           <div className="label">چک‌های دریافتنی</div>
-          <div className="value">{formatRial(Number(stats.pending_checks_in))}</div>
+          <div className="value">
+            <Money n={Number(stats.pending_checks_in)} />
+          </div>
         </div>
         <div className="card stat-card">
           <div className="label">کالای کم‌موجود</div>
@@ -113,7 +140,7 @@ export default function DashboardPage() {
                   <strong>{s.number}</strong>
                   <div className="tiny">{s.party?.name || 'مشتری متفرقه'}</div>
                 </div>
-                <div className="money">{formatRial(s.total)}</div>
+                <Money n={s.total} />
               </Link>
             ))
           )}

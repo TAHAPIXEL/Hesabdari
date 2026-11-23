@@ -2,10 +2,10 @@
 
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { formatRial, parseRial } from '@/lib/money'
+import { parseRial } from '@/lib/money'
 import { jalaliYearOf, todayIso } from '@/lib/jalali'
 import type { CashAccount, Party } from '@/lib/types'
-import { Button, DateField, Field, Input, Modal, Select, Seg, Spinner } from '@/components/ui'
+import { Button, CopyText, DateField, Field, Input, Modal, Money, Select, Seg, Spinner } from '@/components/ui'
 import { useToast } from '@/components/Toast'
 
 export default function TreasuryPage() {
@@ -99,8 +99,15 @@ export default function TreasuryPage() {
         {accounts.map((c) => (
           <div key={c.id} className="card stat-card">
             <div className="label">{c.name}</div>
-            <div className="value">{formatRial(c.balance)}</div>
+            <div className="value">
+              <Money n={c.balance} />
+            </div>
             <div className="tiny">{c.kind === 'bank' ? 'بانک' : c.kind === 'petty' ? 'تنخواه' : 'صندوق'}</div>
+            {c.sheba ? (
+              <div className="tiny" style={{ marginTop: 6 }}>
+                <CopyText value={c.sheba} />
+              </div>
+            ) : null}
           </div>
         ))}
       </div>

@@ -2,10 +2,12 @@
 
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { formatQty, formatRial, parseQty, parseRial } from '@/lib/money'
+import { findByBarcode } from '@/lib/catalog'
+import { formatQty, parseQty, parseRial } from '@/lib/money'
 import { todayIso } from '@/lib/jalali'
 import type { Category, Product } from '@/lib/types'
-import { Badge, Button, Empty, Field, Input, Modal, Select, Spinner } from '@/components/ui'
+import { Badge, Button, CopyText, Empty, Field, Input, Modal, Money, Select, Spinner } from '@/components/ui'
+import { SearchBar, Scanner } from '@/components/Scanner'
 import { useToast } from '@/components/Toast'
 
 const emptyForm = {
@@ -29,6 +31,7 @@ export default function ProductsPage() {
   const [cats, setCats] = useState<Category[]>([])
   const [q, setQ] = useState('')
   const [open, setOpen] = useState(false)
+  const [scanField, setScanField] = useState(false)
   const [edit, setEdit] = useState<Product | null>(null)
   const [form, setForm] = useState(emptyForm)
   const [loading, setLoading] = useState(true)
@@ -46,6 +49,28 @@ export default function ProductsPage() {
 
   useEffect(() => {
     load()
+  }, [])
+
+  useEffect(() => {
+    const editId = sessionStorage.getItem('scan-edit')
+    const neu = sessionStorage.getItem('scan-new')
+    if (editId) {
+      sessionStorage.removeItem('scan-edit')
+      createClient()
+        .from('products')
+        .select('*')
+        .eq('id', editId)
+        .maybeSingle()
+        .then(({ data }) => {
+          if (data) startEdit(data as Product)
+        })
+    } else if (neu) {
+      sessionStorage.removeItem('scan-new')
+      setEdit(null)
+      setForm({ ...emptyForm, barcode: neu })
+      setOpen(true)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const filtered = rows.filter((p) => {
@@ -76,6 +101,19 @@ export default function ProductsPage() {
       description: p.description || '',
     })
     setOpen(true)
+  }
+
+  async function onListScan(code: string) {
+    const found = await findByBarcode(code)
+    if (found[0]) {
+      startEdit(found[0])
+      setQ(code)
+    } else {
+      setEdit(null)
+      setForm({ ...emptyForm, barcode: code })
+      setOpen(true)
+      toast.push('کالا نبود؛ بارکد در فرم جدید نشست.')
+    }
   }
 
   async function save() {
@@ -119,8 +157,7 @@ export default function ProductsPage() {
   }
 
   async function toggle(p: Product) {
-    const supabase = createClient()
-    await supabase.from('products').update({ is_active: !p.is_active }).eq('id', p.id)
+    await createClient().from('products').update({ is_active: !p.is_active }).eq('id', p.id)
     load()
   }
 
@@ -132,11 +169,11 @@ export default function ProductsPage() {
         <h1>کالاها</h1>
         <Button onClick={startNew}>کالای جدید</Button>
       </div>
-      <div className="search" style={{ marginBottom: 12 }}>
-        <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="جستجوی کالا" />
+      <div style={{ marginBottom: 12 }}>
+        <SearchBar value={q} onChange={setQ} onScan={onListScan} placeholder="جستجو یا اسکن بارکد" />
       </div>
       {filtered.length === 0 ? (
-        <Empty title="کالایی نیست" text="اولین کالای پلاسکو را اضافه کنید." action={<Button onClick={startNew}>افزودن کالا</Button>} />
+        <Empty title="کالایی نیست" text="اولین کالا را اضافه کن یا بارکد را اسکن کن." action={<Button onClick={startNew}>افزودن کالا</Button>} />
       ) : (
         <div className="card">
           {filtered.map((p) => (
@@ -146,10 +183,16 @@ export default function ProductsPage() {
                 <div className="tiny">
                   {p.kind === 'service' ? 'خدمات' : `موجودی ${formatQty(p.stock)} ${p.unit}`}
                   {!p.is_active ? ' — غیرفعال' : ''}
+                  {p.barcode ? (
+                    <span onClick={(e) => e.stopPropagation()}>
+                      {' — '}
+                      <CopyText value={p.barcode} />
+                    </span>
+                  ) : null}
                 </div>
               </div>
               <div>
-                <div className="money">{formatRial(p.sell_price)}</div>
+                <Money n={p.sell_price} />
                 {p.kind === 'goods' && Number(p.stock) <= Number(p.min_stock) ? <Badge kind="warn">کم‌موجود</Badge> : null}
               </div>
             </button>
@@ -185,7 +228,12 @@ export default function ProductsPage() {
             <Input value={form.unit} onChange={(e) => setForm({ ...form, unit: e.target.value })} />
           </Field>
           <Field label="بارکد">
-            <Input value={form.barcode} onChange={(e) => setForm({ ...form, barcode: e.target.value })} />
+            <div className="search" style={{ padding: 0, minHeight: 46 }}>
+              <input className="input" style={{ border: 0 }} value={form.barcode} onChange={(e) => setForm({ ...form, barcode: e.target.value })} />
+              <button type="button" className="scan-mini" onClick={() => setScanField(true)}>
+                اسکن
+              </button>
+            </div>
           </Field>
         </div>
         <Field label="کد کالا">
@@ -221,6 +269,16 @@ export default function ProductsPage() {
           </Button>
         ) : null}
       </Modal>
+      {scanField ? (
+        <Scanner
+          title="اسکن بارکد کالا"
+          onClose={() => setScanField(false)}
+          onResult={(code) => {
+            setScanField(false)
+            setForm((f) => ({ ...f, barcode: code }))
+          }}
+        />
+      ) : null}
     </div>
   )
 }

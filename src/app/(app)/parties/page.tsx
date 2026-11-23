@@ -2,9 +2,9 @@
 
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { formatRial, parseRial } from '@/lib/money'
+import { parseRial } from '@/lib/money'
 import type { Party, PartyKind } from '@/lib/types'
-import { Badge, Button, Empty, Field, Input, Modal, Select, Spinner } from '@/components/ui'
+import { Badge, Button, CopyText, Empty, Field, Input, Modal, Money, Select, Spinner } from '@/components/ui'
 import { useToast } from '@/components/Toast'
 
 const empty = { name: '', kind: 'customer' as PartyKind, phone: '', mobile: '', national_id: '', address: '', opening_balance: '', notes: '' }
@@ -98,10 +98,18 @@ export default function PartiesPage() {
             <button key={p.id} type="button" className="list-item" style={{ width: '100%', background: 'none', border: 0 }} onClick={() => startEdit(p)}>
               <div style={{ textAlign: 'right' }}>
                 <strong>{p.name}</strong>
-                <div className="tiny">{p.kind === 'supplier' ? 'تامین‌کننده' : p.kind === 'both' ? 'مشتری و تامین‌کننده' : 'مشتری'}</div>
+                <div className="tiny">
+                  {p.kind === 'supplier' ? 'تامین‌کننده' : p.kind === 'both' ? 'مشتری و تامین‌کننده' : 'مشتری'}
+                  {p.mobile ? (
+                    <span onClick={(e) => e.stopPropagation()}>
+                      {' — '}
+                      <CopyText value={p.mobile} />
+                    </span>
+                  ) : null}
+                </div>
               </div>
               <div>
-                <div className="money">{formatRial(p.balance || 0)}</div>
+                <Money n={p.balance || 0} />
                 {(p.balance || 0) > 0 ? <Badge kind="warn">بدهکار</Badge> : (p.balance || 0) < 0 ? <Badge kind="gold">بستانکار</Badge> : <Badge>تسویه</Badge>}
               </div>
             </button>
