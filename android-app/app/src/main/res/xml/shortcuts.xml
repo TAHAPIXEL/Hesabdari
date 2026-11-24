@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+    <shortcut
+        android:enabled="true"
+        android:icon="@mipmap/ic_launcher"
+        android:shortcutId="scan"
+        android:shortcutLongLabel="@string/sc_scan_long"
+        android:shortcutShortLabel="@string/sc_scan_short">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:data="novin://launch?action=scan"
+            android:targetClass="ir.novinashpazkhaneh.hesabdari.MainActivity"
+            android:targetPackage="ir.novinashpazkhaneh.hesabdari" />
+    </shortcut>
+    <shortcut
+        android:enabled="true"
+        android:icon="@mipmap/ic_launcher"
+        android:shortcutId="sale"
+        android:shortcutLongLabel="@string/sc_sale_long"
+        android:shortcutShortLabel="@string/sc_sale_short">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:data="novin://launch?action=sale"
+            android:targetClass="ir.novinashpazkhaneh.hesabdari.MainActivity"
+            android:targetPackage="ir.novinashpazkhaneh.hesabdari" />
+    </shortcut>
+    <shortcut
+        android:enabled="true"
+        android:icon="@mipmap/ic_launcher"
+        android:shortcutId="stock"
+        android:shortcutLongLabel="@string/sc_stock_long"
+        android:shortcutShortLabel="@string/sc_stock_short">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:data="novin://launch?action=stock"
+            android:targetClass="ir.novinashpazkhaneh.hesabdari.MainActivity"
+            android:targetPackage="ir.novinashpazkhaneh.hesabdari" />
+    </shortcut>
+    <shortcut
+        android:enabled="true"
+        android:icon="@mipmap/ic_launcher"
+        android:shortcutId="backup"
+        android:shortcutLongLabel="@string/sc_backup_long"
+        android:shortcutShortLabel="@string/sc_backup_short">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:data="novin://launch?action=backup"
+            android:targetClass="ir.novinashpazkhaneh.hesabdari.MainActivity"
+            android:targetPackage="ir.novinashpazkhaneh.hesabdari" />
+    </shortcut>
+</shortcuts>

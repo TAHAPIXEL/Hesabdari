@@ -137,6 +137,11 @@ const tests = [
   ["legacy دفتر حساب migrates to نوین آشپزخانه", "(()=>{const migrated=normalizeLoadedState({v:2,settings:{shop:'دفتر حساب',note:'از خرید شما سپاسگزاریم.'},products:[]}); return migrated.settings.shop==='نوین آشپزخانه' && migrated.settings.note.indexOf('نوین آشپزخانه')>-1;})()"],
   ["warm camera stream standby & fast resume helpers", "typeof pauseScan==='function' && typeof buildFastVideoConstraints==='function' && typeof requestAllAppPermissions==='function'"],
   ["abar optical font families configured", "(()=>{const css=[...document.querySelectorAll('style')].map(s=>s.textContent).join('\\n'); return css.includes('AbarLow') && css.includes('AbarMid') && css.includes('AbarHigh') && !css.includes(\"'Vaz'\");})()"],
+  ["no app download or install UI in website", "(()=>{for(const t of ['home','sale','stock','reports','more']){go(t); if(document.querySelector('[data-act=\"installPwa\"]'))return false;} return !document.getElementById('topInstallBtn') && !document.getElementById('permInstallBtn');})()"],
+  ["nav buttons stay mounted without DOM rebuild", "(()=>{go('home'); const b0=document.querySelector('#tabbar .tab'); go('sale'); go('stock'); go('reports'); go('more'); go('home'); return document.querySelector('#tabbar .tab')===b0;})()"],
+  ["render diff guard prevents unnecessary DOM replacement", "(()=>{go('home'); const el0=document.getElementById('page').firstElementChild; render({preserveScroll:true}); const el1=document.getElementById('page').firstElementChild; return el0===el1 && typeof stateDataFingerprint==='function' && stateDataFingerprint(S).length>20;})()"],
+  ["zero vertical jump animation on rise/stag", "(()=>{const css=[...document.querySelectorAll('style')].map(s=>s.textContent).join('\\n'); return css.includes('.rise,.stag>*{animation:none}');})()"],
+  ["native Android APK JS bridge & back navigation", "(()=>{let saved=null; window.AndroidNative={saveFile:(n,t,m)=>{saved=n;return true;},shareFile:()=>true}; exportBackupJSON(); delete window.AndroidNative; go('reports'); const handled=window.__novinHandleBack(); return !!saved && saved.endsWith('.json') && handled===true && ui.tab==='home' && typeof window.__novinTriggerSync==='function';})()"],
 ];
 
 const cleanTests = tests.filter((x) => Array.isArray(x) && typeof x[1] === "string");

@@ -158,10 +158,7 @@ svg{width:18px;height:18px;flex:none}
 .hero .copy{background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.35);color:#EFE9DE}
 .hero::before{content:"";position:absolute;inset-block:0;inset-inline-start:0;width:5px;
   background:linear-gradient(180deg,var(--brass),var(--red))}
-.rise{animation:rise .34s var(--ease) both}
-.stag>*{animation:rise .3s var(--ease) both}
-.stag>*:nth-child(2){animation-delay:.04s}.stag>*:nth-child(3){animation-delay:.08s}
-.stag>*:nth-child(4){animation-delay:.12s}.stag>*:nth-child(5){animation-delay:.16s}
+.rise,.stag>*{animation:none}
 
 /* kpi */
 .kpis{display:flex;flex-wrap:wrap;background:var(--s0);border:1px solid var(--line);border-radius:var(--r2);
@@ -549,9 +546,6 @@ select.inp{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns
     </span>
   </div>
   <div class="tools">
-    <button class="ibtn" id="topInstallBtn" data-act="installPwa" aria-label="نصب وب‌اپ اندروید" title="نصب وب‌اپ نوین آشپزخانه" hidden>
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M5 21h14"/></svg>
-    </button>
     <button class="ibtn" data-act="search" aria-label="جستجوی سراسری">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
     </button>
@@ -657,8 +651,7 @@ select.inp{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns
     </div>
     <div class="perm-foot">
       <button class="btn b w" data-act="grantAllPerms">تأیید و فعال‌سازی همهٔ دسترسی‌ها</button>
-      <button class="btn w" id="permInstallBtn" data-act="installPwa" hidden>نصب وب‌اپ روی صفحهٔ اصلی اندروید</button>
-      <button class="ghost" data-act="dismissPermGate" style="justify-self:center;padding:6px 12px">ورود به برنامه</button>
+      <button class="ghost" data-act="dismissPermGate" style="justify-self:center;padding:6px 12px">بستن</button>
     </div>
   </div>
 </div>
@@ -1136,6 +1129,23 @@ async function pushAll(){
     return false;
   }
 }
+function stateDataFingerprint(st){
+  if(!st)return '';
+  return JSON.stringify({
+    shop:st.settings&&st.settings.shop,
+    cur:st.settings&&st.settings.currency,
+    dig:st.settings&&st.settings.digits,
+    vat:st.settings&&st.settings.vatRate,
+    oc:st.settings&&st.settings.openingCash,
+    th:st.settings&&st.settings.thermal,
+    sy:st.settings&&st.settings.sync,
+    p:st.products||[],
+    c:st.contacts||[],
+    i:st.invoices||[],
+    e:st.expenses||[],
+    r:st.receipts||[]
+  });
+}
 async function syncCycle(silent){
   if(syncBusy||!canSync())return;
   if(saveT){clearTimeout(saveT);saveT=null;S.rev=(S.rev||0)+1;S._dirty=true;saveLocalOnly();}
@@ -1147,6 +1157,7 @@ async function syncCycle(silent){
       syncBusy=false;
       return;
     }
+    const beforeFp=stateDataFingerprint(S);
     const r=await fetch('/api/sync',{method:'GET',headers:{'accept':'application/json'},cache:'no-store'});
     const remote=await r.json().catch(()=>null);
     if(!r.ok||!remote||!remote.ok){
@@ -1174,7 +1185,7 @@ async function syncCycle(silent){
         S._deleted=[];
         saveLocalOnly();
         const sn=$('#shopName');if(sn)sn.textContent=S.settings.shop||DEFAULT_SHOP;
-        if(isUiIdle()){render();updatePos();}
+        if(isUiIdle()&&stateDataFingerprint(S)!==beforeFp){render({preserveScroll:true});updatePos();}
       }else if(!remote.hasData&&hasAnyLocalRecords()){
         await pushAll();
         syncBusy=false;
@@ -1210,7 +1221,7 @@ async function syncCycle(silent){
       }
       const ok=await pushAll();
       const sn=$('#shopName');if(sn)sn.textContent=S.settings.shop||DEFAULT_SHOP;
-      if(ok&&isUiIdle()){render();updatePos();}
+      if(ok&&isUiIdle()&&stateDataFingerprint(S)!==beforeFp){render({preserveScroll:true});updatePos();}
       if(!silent)toast(ok?'همگام‌سازی ابری انجام شد':'خطا در ارتباط با سرور؛ در صف ارسال خودکار است',ok?'ok':'bad');
     }
   }catch(e){
@@ -1302,25 +1313,46 @@ const NAV=[
   {k:'reports',t:'گزارش',i:'chart'},
   {k:'more',t:'بیشتر',i:'grid'}
 ];
+let navMounted=false,lastPageHtml='',lastPageKey='';
 function paintNav(){
-  const it=(x,mid)=>'<button class="tab'+(mid?' mid':'')+(ui.tab===x.k?' on':'')+'" data-act="nav" data-val="'+x.k+'">'+
-    (mid?'<span class="bub">'+ic(x.i)+'</span>':ic(x.i))+'<span>'+x.t+'</span></button>';
-  $('#tabbar').innerHTML=NAV.map(x=>it(x,x.mid)).join('');
-  $('#rail').innerHTML=NAV.map(x=>it(x,x.mid)).join('')+'<span class="sp"></span>'+
-    it({k:'more',t:'تنظیمات',i:'gear'});
+  const tb=$('#tabbar'),rl=$('#rail');
+  if(!navMounted){
+    const it=(x,mid,isGear)=>'<button class="tab'+(mid?' mid':'')+(isGear?(ui.tab==='more'&&ui.sub==='settings'?' on':''):(ui.tab===x.k?' on':''))+'" data-act="'+(isGear?'sub':'nav')+'" data-val="'+(isGear?'settings':x.k)+'">'+
+      (mid?'<span class="bub">'+ic(x.i)+'</span>':ic(x.i))+'<span>'+x.t+'</span></button>';
+    if(tb)tb.innerHTML=NAV.map(x=>it(x,x.mid,false)).join('');
+    if(rl)rl.innerHTML=NAV.map(x=>it(x,x.mid,false)).join('')+'<span class="sp"></span>'+
+      it({k:'more',t:'تنظیمات',i:'gear'},false,true);
+    navMounted=true;
+    return;
+  }
+  if(tb)$$('[data-act="nav"]',tb).forEach(b=>b.classList.toggle('on',b.dataset.val===ui.tab));
+  if(rl){
+    $$('[data-act="nav"]',rl).forEach(b=>b.classList.toggle('on',b.dataset.val===ui.tab));
+    $$('[data-act="sub"]',rl).forEach(b=>b.classList.toggle('on',ui.tab==='more'&&ui.sub==='settings'));
+  }
 }
 function go(t,sub){
+  const changed=(ui.tab!==t||ui.sub!==(sub||null));
   ui.tab=t;ui.sub=sub||null;
-  render();
-  window.scrollTo(0,0);
+  render({preserveScroll:!changed});
+  if(changed)window.scrollTo(0,0);
 }
 const V={};
-function render(){
-  const bar=$('#posbar');
-  $('#page').className='page'+(ui.tab==='sale'?' withpos':'');
-  $('#page').innerHTML='<div class="stag">'+(V[ui.tab]||V.home)()+'</div>';
+function render(opts){
+  const bar=$('#posbar'),pg=$('#page');
+  if(!pg)return;
+  pg.className='page'+(ui.tab==='sale'?' withpos':'');
+  const nextKey=ui.tab+':'+(ui.sub||'');
+  const nextHtml='<div class="stag">'+(V[ui.tab]||V.home)()+'</div>';
   paintNav();
   if(bar){bar.className='posbar'+(ui.tab==='sale'?' on':'');bar.hidden=ui.tab!=='sale';}
+  if(nextHtml===lastPageHtml&&nextKey===lastPageKey)return;
+  const keepScroll=!!(opts&&opts.preserveScroll);
+  const sy=keepScroll?window.scrollY:0;
+  lastPageHtml=nextHtml;
+  lastPageKey=nextKey;
+  pg.innerHTML=nextHtml;
+  if(keepScroll)window.scrollTo(0,sy);
 }
 function phead(title,sub,acts){
   return '<div class="phead"><div class="row"><div style="min-width:0"><h1>'+esc(title)+'</h1>'+
@@ -1373,12 +1405,6 @@ V.home=function(){
     fmtNum(S.products.length)+' کالا · '+fmtNum(S.invoices.length)+' فاکتور · '+fmtDate(t),
     '<button class="ibtn" data-act="scan" aria-label="اسکن">'+ic('scan')+'</button>'+
     '<button class="ibtn" data-act="search" aria-label="جستجو">'+ic('search')+'</button>');
-
-  if(deferredInstallPrompt){
-    h+='<div class="pwa-bar"><div><b>نصب وب‌اپ اندروید نوین آشپزخانه</b>'+
-      '<span>اجرای تمام‌صفحه با نهایت سرعت، کارکرد ۱۰۰٪ آفلاین و باز شدن آنی دوربین</span></div>'+
-      '<div class="pwa-acts"><button class="btn b sm" data-act="installPwa">'+ic('down')+' نصب اپ</button></div></div>';
-  }
 
   h+='<div class="hero rise"><div class="band"></div><div class="scrim"></div><div class="bd">'+
     '<div style="display:flex;justify-content:space-between;align-items:center"><span class="tk">ماندهٔ صندوق</span>'+
@@ -1541,12 +1567,11 @@ V.more=function(){
       '<button class="btn" data-act="csvProducts">'+ic('down')+' خروجی کالاها (CSV)</button>'+
       '<button class="btn" data-act="csvInvoices">'+ic('down')+' خروجی فاکتورها (CSV)</button></div>'+
     '</div></div>';
-  h+='<div class="card" style="margin-top:12px"><div class="chead"><h3>وب‌اپ اندروید و اجرای ۱۰۰٪ آفلاین</h3>'+
-    '<span class="badge '+(offlineReadyState.ready?'b-ok':'b-info')+'">'+(offlineReadyState.ready?'آماده آفلاین':'فعال')+'</span></div><div class="cbody">'+
-    '<div class="hint">تمامی فونت‌های ابر، آیکون‌ها، موتور بارکدخوان و هستهٔ سامانه در اولین ورود روی دستگاه ذخیره می‌شوند. هر تغییر آفلاین (افزودن، ویرایش یا حذف) در حافظهٔ دائمی گوشی ثبت شده و به محض اتصال اینترنت خودکار با دیتابیس ابری همگام می‌شود.</div>'+
+  h+='<div class="card" style="margin-top:12px"><div class="chead"><h3>اجرای آفلاین و وضعیت همگام‌سازی</h3>'+
+    '<span id="offlineBadge" class="badge '+(offlineReadyState.ready?'b-ok':'b-info')+'">'+(offlineReadyState.ready?'آماده آفلاین':'فعال')+'</span></div><div class="cbody">'+
+    '<div class="hint">تمامی فونت‌های ابر، آیکون‌ها، موتور بارکدخوان و هستهٔ سامانه روی دستگاه ذخیره می‌شوند. هر تغییر آفلاین (افزودن، ویرایش یا حذف) در حافظهٔ دائمی ثبت شده و به محض اتصال اینترنت بدون هیچ پرش صفحه با دیتابیس ابری همگام می‌شود.</div>'+
     '<div class="rf" style="margin-top:10px">'+
       '<button class="btn" data-act="grantAllPerms">'+ic('scan')+' بررسی دسترسی دوربین و حافظه</button>'+
-      (deferredInstallPrompt?'<button class="btn b" data-act="installPwa">'+ic('down')+' نصب وب‌اپ اندروید</button>':'')+
     '</div></div></div>';
   return h;
 };
@@ -2383,11 +2408,15 @@ function repExp(r){
 function csv(rows){return '\ufeff'+rows.map(r=>r.map(c=>{c=String(c==null?'':c);return /[",\n]/.test(c)?'"'+c.replace(/"/g,'""')+'"':c;}).join(',')).join('\r\n');}
 function download(name,text,mime){
   try{
+    if(window.AndroidNative&&typeof window.AndroidNative.saveFile==='function'){
+      const ok=window.AndroidNative.saveFile(String(name),String(text),String(mime||'text/plain;charset=utf-8'));
+      if(ok){toast('فایل '+name+' در پوشهٔ Downloads گوشی ذخیره شد','ok');return;}
+    }
     const b=new Blob([text],{type:mime||'text/csv;charset=utf-8'});
     const a=document.createElement('a');
     a.href=URL.createObjectURL(b);a.download=name;
     document.body.appendChild(a);a.click();
-    setTimeout(()=>{try{URL.revokeObjectURL(a.href);}catch(e){}},4000);
+    setTimeout(()=>{try{URL.revokeObjectURL(a.href);if(a.parentNode)a.parentNode.removeChild(a);}catch(e){}},4000);
     toast('فایل '+name+' ذخیره شد','ok');
   }catch(e){toast('ذخیرهٔ فایل ممکن نشد','bad');}
 }
@@ -2455,6 +2484,10 @@ async function shareBackupJSON(){
     const payload=buildBackupPayload();
     const fname='novin-ashpazkhaneh-backup-'+todayISO()+'.json';
     const text=JSON.stringify(payload,null,2);
+    if(window.AndroidNative&&typeof window.AndroidNative.shareFile==='function'){
+      const ok=window.AndroidNative.shareFile(fname,text,'application/json');
+      if(ok){toast('پنجرهٔ اشتراک‌گذاری پشتیبان باز شد','ok');return;}
+    }
     if(typeof File==='function'&&navigator.canShare&&navigator.share){
       const file=new File([text],fname,{type:'application/json'});
       if(navigator.canShare({files:[file]})){
@@ -2864,44 +2897,15 @@ async function checkStartupPermissions(){
   initDetectorOnce();
   try{if(navigator.storage&&navigator.storage.persist)navigator.storage.persist().catch(()=>{});}catch(e){}
   if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia||location.protocol.indexOf('http')!==0)return;
-  let camState='prompt';
   if(navigator.permissions&&navigator.permissions.query){
     try{
       const st=await navigator.permissions.query({name:'camera'});
-      camState=st.state||'prompt';
+      if(st&&st.state==='granted'){
+        try{localStorage.setItem(PERM_DONE_KEY,'1');}catch(e){}
+        cacheBestCameras();
+      }
     }catch(e){}
   }
-  if(camState==='granted'){
-    try{localStorage.setItem(PERM_DONE_KEY,'1');}catch(e){}
-    cacheBestCameras();
-    return;
-  }
-  if(camState==='denied')return;
-  let alreadyDone='';
-  try{alreadyDone=localStorage.getItem(PERM_DONE_KEY)||'';}catch(e){}
-  if(!alreadyDone){
-    // تلاش اولیه برای دریافت خودکار و نمایش درگاه یک‌ضربه‌ای در بدو ورود اندروید
-    const pg=$('#permGate');
-    if(pg)pg.hidden=false;
-  }
-}
-async function installPwa(){
-  if(!deferredInstallPrompt){
-    toast('برای نصب در اندروید، از منوی مرورگر گزینهٔ Install App / افزودن به صفحهٔ اصلی را بزنید');
-    return;
-  }
-  try{
-    deferredInstallPrompt.prompt();
-    const choice=await deferredInstallPrompt.userChoice;
-    if(choice&&choice.outcome==='accepted'){
-      deferredInstallPrompt=null;
-      const tb=$('#topInstallBtn'),pb=$('#permInstallBtn');
-      if(tb)tb.hidden=true;
-      if(pb)pb.hidden=true;
-      render();
-      toast('وب‌اپ نوین آشپزخانه در حال نصب است','ok');
-    }
-  }catch(e){}
 }
 function warmOfflineAssets(){
   if(document.fonts&&typeof document.fonts.load==='function'){
@@ -2918,7 +2922,11 @@ function warmOfflineAssets(){
       if(!d)return;
       if(d.type==='OFFLINE_STATUS'){
         offlineReadyState={ready:!!d.ready,cached:n(d.cached),total:n(d.total)||32};
-        if(ui.tab==='more'&&!ui.sub&&isUiIdle())render();
+        const ob=$('#offlineBadge');
+        if(ob){
+          ob.className='badge '+(offlineReadyState.ready?'b-ok':'b-info');
+          ob.textContent=offlineReadyState.ready?'آماده آفلاین':'فعال';
+        }
       }else if(d.type==='TRIGGER_CLOUD_SYNC'){
         if(canSync())scheduleSync(80);
       }
@@ -3134,7 +3142,6 @@ document.addEventListener('click',function(e){
     case 'restorePick':{const f=$('#restoreFile');if(f)f.click();break;}
     case 'grantAllPerms':requestAllAppPermissions(true);break;
     case 'dismissPermGate':{try{localStorage.setItem(PERM_DONE_KEY,'1');}catch(err){}const pg=$('#permGate');if(pg)pg.hidden=true;break;}
-    case 'installPwa':installPwa();break;
     case 'clearAll':confirmSheet('پاک‌سازی کامل','همهٔ داده‌ها از این دستگاه و فضای ابری برای همیشه حذف می‌شوند. ابتدا پشتیبان بگیرید.',()=>{
       const prevRev=Math.max(n(S&&S.rev),n(S&&S._serverRev));
       try{localStorage.removeItem(LS);}catch(err){}
@@ -3259,22 +3266,19 @@ window.addEventListener('pagehide',()=>{
   if(cam||qr)stopScan();
   try{if(saveT){clearTimeout(saveT);saveT=null;S.rev=(S.rev||0)+1;S._dirty=true;saveLocalOnly();}}catch(e){}
 });
-window.addEventListener('beforeinstallprompt',e=>{
-  e.preventDefault();
-  deferredInstallPrompt=e;
-  const tb=$('#topInstallBtn'),pb=$('#permInstallBtn');
-  if(tb)tb.hidden=false;
-  if(pb)pb.hidden=false;
-  if(ui.tab==='home'&&isUiIdle())render();
-});
-window.addEventListener('appinstalled',()=>{
-  deferredInstallPrompt=null;
-  const tb=$('#topInstallBtn'),pb=$('#permInstallBtn');
-  if(tb)tb.hidden=true;
-  if(pb)pb.hidden=true;
-  if(ui.tab==='home'&&isUiIdle())render();
-  toast('وب‌اپ نوین آشپزخانه با موفقیت نصب شد','ok');
-});
+window.__novinHandleBack=function(){
+  const pg=$('#permGate');if(pg&&!pg.hidden){pg.hidden=true;return true;}
+  if(!$('#scan').hidden){closeScan();return true;}
+  if(!$('#search').hidden){closeSearch();return true;}
+  if(!$('#ov').hidden){closeSheet();return true;}
+  if(ui.sub){go(ui.tab,null);return true;}
+  if(ui.tab!=='home'){go('home');return true;}
+  return false;
+};
+window.__novinTriggerSync=function(){
+  retryCount=0;
+  if(canSync())scheduleSync(60);
+};
 
 /* ===== راه‌اندازی ===== */
 function handleLaunchShortcut(){
