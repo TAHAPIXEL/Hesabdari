@@ -1,0 +1,114 @@
+name: Build & Publish Android APK
+
+on:
+  push:
+    branches:
+      - main
+      - "arena/**"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-apk:
+    name: Build Signed Novin Ashpazkhaneh APK
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Set up Gradle 8.10.2
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "8.10.2"
+
+      - name: Accept Android SDK licenses
+        run: |
+          SDK_ROOT="${ANDROID_HOME:-$ANDROID_SDK_ROOT}"
+          export ANDROID_HOME="$SDK_ROOT"
+          echo "ANDROID_HOME=$SDK_ROOT" >> "$GITHUB_ENV"
+          SDKMGR=$(find "$SDK_ROOT" -name sdkmanager -type f | head -n 1)
+          if [ -n "$SDKMGR" ]; then
+            yes | "$SDKMGR" --licenses >/dev/null 2>&1 || true
+          fi
+
+      - name: Bundle offline web assets (HTML, SW, 15 Abar fonts, brand icons)
+        run: |
+          DEST="android-app/app/src/main/assets/web"
+          rm -rf "$DEST"
+          mkdir -p "$DEST"
+          cp public/hsab.html "$DEST/hsab.html"
+          cp public/sw.js "$DEST/sw.js"
+          cp public/manifest.webmanifest "$DEST/manifest.webmanifest"
+          cp public/favicon.ico "$DEST/favicon.ico"
+          cp -r public/fonts "$DEST/fonts"
+          cp -r public/icons "$DEST/icons"
+          ls -la "$DEST" "$DEST/fonts" "$DEST/icons"
+
+      - name: Generate Release Signing Keystore
+        run: |
+          KS_PATH="$RUNNER_TEMP/novin-release.jks"
+          keytool -genkeypair -v \
+            -keystore "$KS_PATH" \
+            -storetype PKCS12 \
+            -alias novin \
+            -keyalg RSA \
+            -keysize 2048 \
+            -validity 10000 \
+            -storepass novin123456 \
+            -keypass novin123456 \
+            -dname "CN=Novin Ashpazkhaneh, OU=Accounting, O=NovinAshpazkhaneh, L=Tehran, S=Tehran, C=IR"
+          echo "NOVIN_KEYSTORE_PATH=$KS_PATH" >> "$GITHUB_ENV"
+          echo "NOVIN_KEYSTORE_PASSWORD=novin123456" >> "$GITHUB_ENV"
+          echo "NOVIN_KEY_ALIAS=novin" >> "$GITHUB_ENV"
+          echo "NOVIN_KEY_PASSWORD=novin123456" >> "$GITHUB_ENV"
+
+      - name: Assemble Signed Release APK
+        working-directory: android-app
+        run: |
+          gradle assembleRelease --no-daemon --stacktrace
+
+      - name: Verify APK Signature & Prepare Release Asset
+        run: |
+          APK_SRC=$(find android-app/app/build/outputs/apk/release -name "*.apk" | head -n 1)
+          if [ -z "$APK_SRC" ]; then
+            echo "Release APK not found!"
+            exit 1
+          fi
+          cp "$APK_SRC" novin-ashpazkhaneh.apk
+          ls -lh novin-ashpazkhaneh.apk
+          APKSIGNER=$(find "$ANDROID_HOME/build-tools" -name apksigner -type f | sort -V | tail -n 1)
+          if [ -n "$APKSIGNER" ]; then
+            "$APKSIGNER" verify --verbose novin-ashpazkhaneh.apk
+          fi
+
+      - name: Upload APK Workflow Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: novin-ashpazkhaneh-apk
+          path: novin-ashpazkhaneh.apk
+          if-no-files-found: error
+
+      - name: Publish Signed APK to GitHub Releases (v1.0.0)
+        if: github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG="v1.0.0"
+          TITLE="اپلیکیشن اندروید نوین آشپزخانه (نسخه ۱.۰.۰)"
+          NOTES="نسخهٔ رسمی اندروید (APK) سامانهٔ حسابداری، فروش و انبارداری **نوین آشپزخانه** — با اجرای بدون پرش، پشتیبانی کامل آفلاین، فونت‌های فارسی ابر، اسکنر فوق‌سریع بارکد، پشتیبان‌گیری و بازیابی JSON، و همگام‌سازی خودکار ابری."
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release upload "$TAG" novin-ashpazkhaneh.apk --clobber
+            gh release edit "$TAG" --title "$TITLE" --notes "$NOTES" --latest
+          else
+            gh release create "$TAG" novin-ashpazkhaneh.apk --title "$TITLE" --notes "$NOTES" --latest
+          fi

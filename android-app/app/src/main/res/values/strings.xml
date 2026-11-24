@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">نوین آشپزخانه</string>
+    <string name="sc_scan_short">اسکن بارکد</string>
+    <string name="sc_scan_long">اسکن سریع بارکد کالا</string>
+    <string name="sc_sale_short">فاکتور جدید</string>
+    <string name="sc_sale_long">ثبت فاکتور فروش جدید</string>
+    <string name="sc_stock_short">انبار کالا</string>
+    <string name="sc_stock_long">مدیریت انبار و موجودی</string>
+    <string name="sc_backup_short">پشتیبان JSON</string>
+    <string name="sc_backup_long">پشتیبان‌گیری و بازیابی JSON</string>
+</resources>
