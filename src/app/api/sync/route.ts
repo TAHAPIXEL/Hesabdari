@@ -168,6 +168,10 @@ export async function GET() {
             : { sale: 1001, purchase: 501 },
         settings:
           appRow && typeof appRow.value === "object" ? appRow.value : null,
+        settingsUpdatedAt:
+          appRow && typeof appRow.updated_at === "string"
+            ? appRow.updated_at
+            : null,
         products,
         contacts,
         invoices,
