@@ -1,0 +1,136 @@
+{
+  "id": "/",
+  "name": "نوین آشپزخانه — حسابداری و فروش",
+  "short_name": "نوین آشپزخانه",
+  "description": "سامانه جامع حسابداری، صدور فاکتور، بارکدخوان فوق‌سریع و مدیریت انبار نوین آشپزخانه با اجرای کامل آفلاین و همگام‌سازی ابری خودکار",
+  "lang": "fa-IR",
+  "dir": "rtl",
+  "start_url": "/?source=pwa",
+  "scope": "/",
+  "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
+  "orientation": "any",
+  "background_color": "#0C2337",
+  "theme_color": "#0C2337",
+  "categories": ["finance", "business", "productivity", "shopping"],
+  "prefer_related_applications": false,
+  "launch_handler": {
+    "client_mode": "focus-existing"
+  },
+  "icons": [
+    {
+      "src": "/icons/icon-72.png",
+      "sizes": "72x72",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-96.png",
+      "sizes": "96x96",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-144.png",
+      "sizes": "144x144",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-256.png",
+      "sizes": "256x256",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-384.png",
+      "sizes": "384x384",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-maskable-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/icons/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/icons/logo.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "اسکن سریع بارکد",
+      "short_name": "اسکن بارکد",
+      "description": "باز کردن فوری دوربین بارکدخوان برای فروش",
+      "url": "/?action=scan",
+      "icons": [
+        {
+          "src": "/icons/icon-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "فاکتور فروش جدید",
+      "short_name": "فاکتور جدید",
+      "description": "ثبت فاکتور فروش جدید در نوین آشپزخانه",
+      "url": "/?action=sale",
+      "icons": [
+        {
+          "src": "/icons/icon-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "کالاها و انبار",
+      "short_name": "انبار",
+      "description": "مشاهده موجودی و افزودن کالا",
+      "url": "/?action=stock",
+      "icons": [
+        {
+          "src": "/icons/icon-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "پشتیبان‌گیری JSON",
+      "short_name": "پشتیبان JSON",
+      "description": "دریافت یا بازیابی فایل پشتیبان JSON",
+      "url": "/?action=backup",
+      "icons": [
+        {
+          "src": "/icons/icon-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    }
+  ]
+}

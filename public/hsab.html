@@ -2,14 +2,22 @@
 <html lang="fa" dir="rtl">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#F5F0E6">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, viewport-fit=cover">
+<meta name="theme-color" content="#0C2337">
 <meta name="color-scheme" content="light">
+<meta name="application-name" content="نوین آشپزخانه">
+<meta name="apple-mobile-web-app-title" content="نوین آشپزخانه">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="description" content="دفتر — سامانه حسابداری و انبار کاملاً آفلاین با اسکن بارکد، فروش سریع و گزارش‌های مالی.">
-<title>دفتر · سامانه حسابداری</title>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="description" content="نوین آشپزخانه — سامانه هوشمند حسابداری، صدور فاکتور، بارکدخوان فوق‌سریع و انبارداری با کارکرد کامل آفلاین و همگام‌سازی خودکار ابری.">
+<title>نوین آشپزخانه · سامانه حسابداری و انبار</title>
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" type="image/svg+xml" href="/icons/logo.svg">
+<link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192.png">
+<link rel="icon" type="image/png" sizes="512x512" href="/icons/icon-512.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon.png">
 <link rel="preload" href="/fonts/AbarMid-Regular.woff" as="font" type="font/woff" crossorigin>
 <link rel="preload" href="/fonts/AbarMid-Bold.woff" as="font" type="font/woff" crossorigin>
 <link rel="preload" href="/fonts/AbarHigh-Black.woff" as="font" type="font/woff" crossorigin>
@@ -472,6 +480,29 @@ select.inp{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns
 @keyframes printout{from{clip-path:inset(0 0 100% 0);transform:translateY(14px)}to{clip-path:inset(0 0 0 0);transform:none}}
 @media (prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
 
+/* pwa banner & startup permission gate */
+.pwa-bar{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px 13px;margin-bottom:12px;
+  border-radius:var(--r2);background:linear-gradient(135deg,#0C2337,#17344F);color:#FAF6EE;
+  border:1px solid rgba(223,178,86,.38);box-shadow:var(--sh2)}
+.pwa-bar b{display:block;font-family:var(--font-high);font-size:13.5px;font-weight:900;color:#FFFDF7}
+.pwa-bar span{display:block;font-family:var(--font-low);font-size:11px;color:rgba(250,246,238,.78);margin-top:2px}
+.pwa-acts{display:flex;gap:6px;flex:none;align-items:center}
+.perm-gate{position:fixed;inset:0;z-index:95;background:rgba(12,25,38,.76);backdrop-filter:blur(6px);
+  display:grid;place-items:center;padding:18px}
+.perm-gate[hidden]{display:none!important}
+.perm-box{width:min(420px,100%);background:var(--s0);border:1px solid rgba(192,138,46,.42);border-radius:var(--r3);
+  box-shadow:var(--sh3);overflow:hidden;animation:pop .22s var(--ease)}
+.perm-top{background:linear-gradient(145deg,#0C2337,#16324C);color:#FFFDF7;padding:18px 16px;text-align:center;
+  border-bottom:2px solid var(--brass)}
+.perm-top .p-emblem{width:64px;height:64px;margin:0 auto 10px;border-radius:16px;box-shadow:0 8px 22px rgba(0,0,0,.35)}
+.perm-top h2{margin:0;font-family:var(--font-high);font-size:20px;font-weight:900}
+.perm-top p{margin:4px 0 0;font-family:var(--font-low);font-size:12px;color:rgba(255,253,247,.78)}
+.perm-list{padding:14px 16px;display:grid;gap:9px}
+.perm-item{display:flex;align-items:center;gap:10px;padding:9px 11px;border-radius:var(--r1);background:var(--s1);border:1px solid var(--line)}
+.perm-item b{display:block;font-family:var(--font-mid);font-size:13px;font-weight:800}
+.perm-item i{display:block;font-style:normal;font-family:var(--font-low);font-size:11px;color:var(--ink3)}
+.perm-foot{padding:0 16px 16px;display:grid;gap:8px}
+
 /* print */
 #printArea{display:none}
 @media print{
@@ -479,6 +510,7 @@ select.inp{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns
   body>*{display:none!important}
   #printArea{display:block!important;font-family:var(--font-low);font-size:12px;color:#000}
   .p-head{text-align:center;border-bottom:2px solid #000;padding-bottom:8px;margin-bottom:10px}
+  .p-head .p-logo{width:42px;height:42px;margin:0 auto 5px}
   .p-head h1{margin:0;font-family:var(--font-high);font-size:20px;font-weight:900}
   .p-head p{margin:2px 0 0;font-size:11px;font-weight:600}
   .p-meta{display:flex;justify-content:space-between;font-size:11.5px;font-weight:600;margin-bottom:8px}
@@ -498,17 +530,28 @@ select.inp{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns
 <header class="top">
   <div class="brand" data-act="nav" data-val="home" role="button" tabindex="0">
     <span class="seal" aria-hidden="true">
-      <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.4">
-        <circle cx="24" cy="24" r="21"/><circle cx="24" cy="24" r="16.5" stroke-dasharray="1.5 4" stroke-width="1.6"/>
-        <path d="M14 18.5h20M14 24h20M14 29.5h11" stroke-linecap="round"/>
-        <circle cx="31.5" cy="29.5" r="3" fill="currentColor" stroke="none"/>
+      <svg viewBox="0 0 128 128" fill="none">
+        <rect width="128" height="128" rx="28" fill="#0C2337" stroke="#DFB256" stroke-width="4"/>
+        <circle cx="64" cy="64" r="46" stroke="#DFB256" stroke-width="5"/>
+        <path d="M55 41.5a9 8.5 0 0 1 18 0" stroke="#DFB256" stroke-width="4.5" stroke-linecap="round"/>
+        <path d="M35 64c2-15.8 14.2-23.5 29-23.5S91 48.2 93 64H35Z" fill="#DFB256"/>
+        <path d="M42.5 61c1.8-9.8 8.6-15.6 17.5-17.2" stroke="#0C2337" stroke-width="3.2" stroke-linecap="round"/>
+        <rect x="31" y="66.5" width="66" height="4.8" rx="2.4" fill="#DFB256"/>
+        <rect x="35" y="74.5" width="58" height="4.2" rx="1.6" fill="#DFB256"/>
+        <rect x="35" y="82" width="58" height="4.2" rx="1.6" fill="#DFB256"/>
+        <rect x="35" y="89.5" width="58" height="4.2" rx="1.6" fill="#DFB256"/>
+        <circle cx="64" cy="69" r="11" fill="#0C2337" stroke="#DFB256" stroke-width="2.8"/>
+        <path d="M59 69.2l3.4 3.5 6.9-7" stroke="#DFB256" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/>
       </svg>
     </span>
-    <span><b id="shopName">دفتر حساب</b>
+    <span><b id="shopName">نوین آشپزخانه</b>
       <i><span class="dot" id="netDot"></span><span id="saveState">ذخیرهٔ محلی · آماده</span></i>
     </span>
   </div>
   <div class="tools">
+    <button class="ibtn" id="topInstallBtn" data-act="installPwa" aria-label="نصب وب‌اپ اندروید" title="نصب وب‌اپ نوین آشپزخانه" hidden>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M5 21h14"/></svg>
+    </button>
     <button class="ibtn" data-act="search" aria-label="جستجوی سراسری">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
     </button>
@@ -583,6 +626,44 @@ select.inp{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns
   </div>
 </div>
 
+<div class="perm-gate" id="permGate" hidden role="dialog" aria-modal="true" aria-labelledby="permGateTitle">
+  <div class="perm-box">
+    <div class="perm-top">
+      <svg class="p-emblem" viewBox="0 0 128 128" fill="none">
+        <rect width="128" height="128" rx="28" fill="#0C2337" stroke="#DFB256" stroke-width="4"/>
+        <circle cx="64" cy="64" r="46" stroke="#DFB256" stroke-width="5"/>
+        <path d="M55 41.5a9 8.5 0 0 1 18 0" stroke="#DFB256" stroke-width="4.5" stroke-linecap="round"/>
+        <path d="M35 64c2-15.8 14.2-23.5 29-23.5S91 48.2 93 64H35Z" fill="#DFB256"/>
+        <path d="M42.5 61c1.8-9.8 8.6-15.6 17.5-17.2" stroke="#0C2337" stroke-width="3.2" stroke-linecap="round"/>
+        <rect x="31" y="66.5" width="66" height="4.8" rx="2.4" fill="#DFB256"/>
+        <rect x="35" y="74.5" width="58" height="4.2" rx="1.6" fill="#DFB256"/>
+        <rect x="35" y="82" width="58" height="4.2" rx="1.6" fill="#DFB256"/>
+        <rect x="35" y="89.5" width="58" height="4.2" rx="1.6" fill="#DFB256"/>
+        <circle cx="64" cy="69" r="11" fill="#0C2337" stroke="#DFB256" stroke-width="2.8"/>
+        <path d="M59 69.2l3.4 3.5 6.9-7" stroke="#DFB256" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <h2 id="permGateTitle">آماده‌سازی وب‌اپ نوین آشپزخانه</h2>
+      <p>اعطای دسترسی‌ها برای باز شدن آنی دوربین و کارکرد ۱۰۰٪ آفلاین</p>
+    </div>
+    <div class="perm-list">
+      <div class="perm-item">
+        <span class="idx brass"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 8V5.5A2.5 2.5 0 0 1 5.5 3H8M16 3h2.5A2.5 2.5 0 0 1 21 5.5V8M21 16v2.5a2.5 2.5 0 0 1-2.5 2.5H16M8 21H5.5A2.5 2.5 0 0 1 3 18.5V16"/><path d="M7 12h10"/></svg></span>
+        <span><b>دسترسی دوربین بارکدخوان</b><i>پیش‌تنظیم لنز اصلی برای باز شدن فوق‌سریع اسکنر</i></span>
+      </div>
+      <div class="perm-item">
+        <span class="idx brass"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v14c0 1.7 3.6 3 8 3s8-1.3 8-3V5"/><path d="M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3"/></svg></span>
+        <span><b>حافظهٔ دائمی آفلاین و همگام‌سازی ابری</b><i>ذخیرهٔ فونت‌ها و داده‌ها روی گوشی + ارسال خودکار به ابر</i></span>
+      </div>
+    </div>
+    <div class="perm-foot">
+      <button class="btn b w" data-act="grantAllPerms">تأیید و فعال‌سازی همهٔ دسترسی‌ها</button>
+      <button class="btn w" id="permInstallBtn" data-act="installPwa" hidden>نصب وب‌اپ روی صفحهٔ اصلی اندروید</button>
+      <button class="ghost" data-act="dismissPermGate" style="justify-self:center;padding:6px 12px">ورود به برنامه</button>
+    </div>
+  </div>
+</div>
+
+<input type="file" id="restoreFile" accept="application/json,.json" style="display:none">
 <div class="toast" id="toast" hidden><span id="toastMsg"></span></div>
 <div id="printArea"></div>
 
@@ -718,58 +799,67 @@ function copyBtn(label,val){
 }
 
 /* ===== داده ===== */
-let S=null,draft=null;
+const DEFAULT_SHOP='نوین آشپزخانه';
+let S=null,draft=null,offlineReadyState={ready:false,cached:0,total:32},deferredInstallPrompt=null;
 const ui={tab:'home',sub:null,pq:'',pf:'all',rr:'month',rtab:'sales',rf:'sale',cf:'all'};
 
 function seedProducts(){
-  const p=(name,barcode,category,unit,cost,price,stock,min)=>({id:uid(),name,barcode,category,unit,cost,price,stock,min,vatable:true});
+  const ts=new Date().toISOString();
+  const p=(name,barcode,category,unit,cost,price,stock,min)=>({id:uid(),name,barcode,category,unit,cost,price,stock,min,vatable:true,updatedAt:ts});
   return [
-    p('شیر پرچرب پگاه ۱ لیتری','6260001000015','لبنیات','لیتر',28000,32000,48,12),
-    p('ماست دبه‌ای میهن ۲.۵ کیلو','6260001000022','لبنیات','کیلو',145000,168000,18,6),
-    p('پنیر سفید صباح ۴۰۰ گرم','6260001000039','لبنیات','بسته',92000,108000,24,8),
-    p('کره حیوانی کاله ۱۰۰ گرم','6260001000152','لبنیات','عدد',74000,89000,0,6),
-    p('تخم‌مرغ بسته ۲۰ عددی','6260001000046','پروتئین','بسته',118000,135000,15,5),
-    p('برنج هاشمی درجه‌یک ۱۰ کیلو','6260001000053','حبوبات','کیسه',1250000,1480000,9,3),
-    p('لپه ایرانی ۹۰۰ گرم','6260001000138','حبوبات','بسته',96000,112000,22,6),
-    p('روغن سرخ‌کردنی لادن ۱.۸ لیتر','6260001000060','خوراکی','عدد',172000,195000,26,10),
-    p('شکر سفید یزد ۸۰۰ گرم','6260001000077','خوراکی','بسته',48000,57000,30,10),
-    p('چای شکسته احمد ۵۰۰ گرم','6260001000084','نوشیدنی','بسته',210000,245000,12,4),
-    p('نوشابه زمزم کولا ۱.۵ لیتر','6260001000091','نوشیدنی','عدد',32000,40000,60,12),
-    p('دستمال کاغذی گلرنگ ۱۰۰ برگ','6260001000107','بایداشتی','بسته',26000,33000,40,12),
-    p('مایع ظرف‌شویی پریل ۷۵۰ میلی','6260001000114','بایداشتی','عدد',88000,104000,20,6),
-    p('کیسه زباله ۵۰ عددی','6260001000121','بایداشتی','بسته',34000,45000,5,15),
-    p('خرمای مضافتی ۶۰۰ گرم','6260001000145','خشکبار','بسته',128000,150000,3,6)
+    p('سرویس قابلمه گرانیتی ۱۰ پارچه','6260001000015','پخت‌وپز','بسته',28000,32000,48,12),
+    p('زودپز استیل ۶ لیتری سوپاپ‌دار','6260001000022','پخت‌وپز','عدد',145000,168000,18,6),
+    p('کتری و قوری استیل طلایی','6260001000039','نوشیدنی‌ساز','بسته',92000,108000,24,8),
+    p('سرویس کارد و ساطور ۸ پارچه','6260001000152','ابزار آشپزخانه','بسته',74000,89000,0,6),
+    p('تابه رژیمی دوطرفه ۳۲ سانت','6260001000046','پخت‌وپز','عدد',118000,135000,15,5),
+    p('سرویس قاشق و چنگال ۲۴ نفره استیل','6260001000053','پذیرایی','بسته',1250000,1480000,9,3),
+    p('فلاسک دوجداره استیل ۱.۵ لیتری','6260001000138','نگهدارنده','عدد',96000,112000,22,6),
+    p('خردکن برقی کاسه استیل ۳ لیتری','6260001000060','برقی آشپزخانه','عدد',172000,195000,26,10),
+    p('ست بانکه شیشه‌ای درب بامبو ۶ عددی','6260001000077','نظم‌دهنده','بسته',48000,57000,30,10),
+    p('سینی استیل دسته‌دار طلایی','6260001000084','پذیرایی','عدد',210000,245000,12,4),
+    p('کفگیر و ملاقه سیلیکونی نسوز','6260001000091','ابزار آشپزخانه','بسته',32000,40000,60,12),
+    p('آبچکان رومیزی دوطبقه ضدزنگ','6260001000107','نظم‌دهنده','عدد',26000,33000,40,12),
+    p('قالب کیک کمربندی نچسب ۳ تایی','6260001000114','قنادی','بسته',88000,104000,20,6),
+    p('تخته گوشت بامبو شیاردار بزرگ','6260001000121','ابزار آشپزخانه','عدد',34000,45000,5,15),
+    p('سرویس پاسماوری سرامیکی ۷ پارچه','6260001000145','نگهدارنده','بسته',128000,150000,3,6)
   ];
 }
 function baseSettings(){
-  return {shop:'دفتر حساب',phone:'۰۲۱-۸۸۷۷۶۶۵۵',address:'تهران، خیابان شهید بهشتی، پلاک ۴۲',
-    note:'از خرید شما سپاسگزاریم.',vatRate:10,currency:'ریال',digits:'fa',openingCash:0,
+  return {shop:DEFAULT_SHOP,phone:'۰۲۱-۸۸۷۷۶۶۵۵',address:'تهران، خیابان شهید بهشتی، پلاک ۴۲',
+    note:'از خرید شما در نوین آشپزخانه سپاسگزاریم.',vatRate:10,currency:'ریال',digits:'fa',openingCash:0,
     thermal:false,sync:true};
 }
+function normalizeShopBranding(settingsObj){
+  if(!settingsObj)return baseSettings();
+  if(!settingsObj.shop||settingsObj.shop==='دفتر حساب')settingsObj.shop=DEFAULT_SHOP;
+  if(!settingsObj.note||settingsObj.note==='از خرید شما سپاسگزاریم.')settingsObj.note='از خرید شما در نوین آشپزخانه سپاسگزاریم.';
+  return settingsObj;
+}
 function demoState(){
+  const ts=new Date().toISOString();
   const products=seedProducts();
   const contacts=[
-    {id:uid(),name:'سوپر مارکت البرز',kind:'customer',phone:'۰۹۱۲۱۲۳۴۵۶۷',note:'تحویل صبح'},
-    {id:uid(),name:'پروتئینی برادران رضایی',kind:'customer',phone:'۰۹۱۲۳۴۵۶۷۸۹',note:''},
-    {id:uid(),name:'کافه گل‌ریز',kind:'customer',phone:'۰۹۳۵۵۵۵۱۲۳۴',note:'سفارش هفتگی'},
-    {id:uid(),name:'رستوران سنتی هفت‌سین',kind:'customer',phone:'۰۹۱۲۳۳۳۴۴۵۵',note:'پرداخت هفتگی'},
-    {id:uid(),name:'پخش لبنیات آریا',kind:'supplier',phone:'۰۲۱۸۸۷۷۶۶۵۵',note:''},
-    {id:uid(),name:'پخش سراسری رفسنجان',kind:'supplier',phone:'۰۳۴۳۴۲۲۱۱۰۰',note:''}
+    {id:uid(),name:'گالری جهیزیه البرز',kind:'customer',phone:'۰۹۱۲۱۲۳۴۵۶۷',note:'تحویل صبح',updatedAt:ts},
+    {id:uid(),name:'فروشگاه لوازم خانگی رضایی',kind:'customer',phone:'۰۹۱۲۳۴۵۶۷۸۹',note:'',updatedAt:ts},
+    {id:uid(),name:'کافه و رستوران گل‌ریز',kind:'customer',phone:'۰۹۳۵۵۵۵۱۲۳۴',note:'سفارش هفتگی',updatedAt:ts},
+    {id:uid(),name:'رستوران سنتی هفت‌سین',kind:'customer',phone:'۰۹۱۲۳۳۳۴۴۵۵',note:'پرداخت هفتگی',updatedAt:ts},
+    {id:uid(),name:'بازرگانی استیل آریا',kind:'supplier',phone:'۰۲۱۸۸۷۷۶۶۵۵',note:'',updatedAt:ts},
+    {id:uid(),name:'پخش بلور و آشپزخانه پارس',kind:'supplier',phone:'۰۳۴۳۴۲۲۱۱۰۰',note:'',updatedAt:ts}
   ];
   const expenses=[
-    {id:uid(),date:daysAgoISO(6),title:'اجارهٔ مغازه',category:'مستغلات',amount:8500000,account:'صندوق'},
-    {id:uid(),date:daysAgoISO(4),title:'قبض برق واحد',category:'آب و برق',amount:640000,account:'صندوق'},
-    {id:uid(),date:daysAgoISO(3),title:'کرایهٔ خودروی توزیع',category:'حمل و نقل',amount:950000,account:'صندوق'},
-    {id:uid(),date:daysAgoISO(2),title:'کارتن و بسته‌بندی',category:'اداری',amount:380000,account:'صندوق'},
-    {id:uid(),date:daysAgoISO(1),title:'آب معدنی برای فروشگاه',category:'مصرف داخلی',amount:120000,account:'صندوق'},
-    {id:uid(),date:todayISO(),title:'لوازم تحریر و اتیکت',category:'اداری',amount:180000,account:'صندوق'}
+    {id:uid(),date:daysAgoISO(6),title:'اجارهٔ فروشگاه',category:'مستغلات',amount:8500000,account:'صندوق',updatedAt:ts},
+    {id:uid(),date:daysAgoISO(4),title:'قبض برق واحد تجاری',category:'آب و برق',amount:640000,account:'صندوق',updatedAt:ts},
+    {id:uid(),date:daysAgoISO(3),title:'کرایهٔ وانت ارسال بار',category:'حمل و نقل',amount:950000,account:'صندوق',updatedAt:ts},
+    {id:uid(),date:daysAgoISO(2),title:'کارتن و نایلون حباب‌دار بسته‌بندی',category:'بسته‌بندی',amount:380000,account:'صندوق',updatedAt:ts},
+    {id:uid(),date:daysAgoISO(1),title:'پذیرایی مشتریان فروشگاه',category:'مصرف داخلی',amount:120000,account:'صندوق',updatedAt:ts},
+    {id:uid(),date:todayISO(),title:'رول کاغذ حرارتی و لیبل بارکد',category:'اداری',amount:180000,account:'صندوق',updatedAt:ts}
   ];
   const mk=(kind,ci,days,items,paid,method)=>{
     const lines=items.map(([pi,q])=>{const pr=products[pi];
       return {pid:pr.id,name:pr.name,qty:q,price:kind==='sale'?pr.price:pr.cost,cost:pr.cost,unit:pr.unit};});
     const total=round(sum(lines.map(l=>l.qty*l.price)));
     return {id:uid(),no:'',kind,date:daysAgoISO(days),contactId:contacts[ci].id,contactName:contacts[ci].name,
-      items:lines,discount:0,vat:0,total,paid:round(total*paid),method:method||'cash',note:''};
+      items:lines,discount:0,vat:0,total,paid:round(total*paid),method:method||'cash',note:'',updatedAt:ts};
   };
   const invoices=[
     mk('sale',0,0,[[0,12],[2,6],[11,10]],1,'card'),
@@ -785,8 +875,8 @@ function demoState(){
   const seq={sale:1001,purchase:501};
   invoices.forEach(i=>{i.no=(i.kind==='sale'?'ف-':'خ-')+fmtNum(seq[i.kind]++);});
   const receipts=[
-    {id:uid(),date:daysAgoISO(2),contactId:contacts[1].id,dir:'in',amount:900000,method:'card',note:'پرداخت بابت فاکتور'},
-    {id:uid(),date:daysAgoISO(4),contactId:contacts[5].id,dir:'out',amount:2500000,method:'cash',note:'پیش‌پرداخت خرید'}
+    {id:uid(),date:daysAgoISO(2),contactId:contacts[1].id,dir:'in',amount:900000,method:'card',note:'پرداخت بابت فاکتور',updatedAt:ts},
+    {id:uid(),date:daysAgoISO(4),contactId:contacts[5].id,dir:'out',amount:2500000,method:'cash',note:'پیش‌پرداخت خرید',updatedAt:ts}
   ];
   const K=10;
   products.forEach(p=>{p.cost=round(n(p.cost)*K);p.price=round(n(p.price)*K);});
@@ -799,7 +889,7 @@ function demoState(){
   });
   const settings=Object.assign(baseSettings(),{openingCash:450000000});
   return {v:2,settings,products,contacts,invoices,expenses,receipts,seq,
-    draft:null,rev:0,createdAt:new Date().toISOString()};
+    draft:null,rev:0,createdAt:ts};
 }
 function seedState(){
   return {v:2,settings:baseSettings(),products:[],contacts:[],invoices:[],expenses:[],receipts:[],
@@ -821,6 +911,7 @@ function setCurrency(target){
   S.receipts.forEach(r=>{r.amount=convertMoney(r.amount,K);r.updatedAt=ts;});
   S.settings.openingCash=convertMoney(S.settings.openingCash,K);
   S.settings.currency=target;
+  S.settings._updatedAt=ts;
   touch();render();
   toast('همهٔ اعداد به '+target+' تبدیل شد','ok');
 }
@@ -838,24 +929,26 @@ function tomanToRial(o){
   o.settings.currency='ریال';
   return o;
 }
+function normalizeLoadedState(o){
+  if(!o||!Array.isArray(o.products))return null;
+  o.settings=normalizeShopBranding(Object.assign(baseSettings(),o.settings||{}));
+  o.seq=o.seq||{sale:1001,purchase:501};
+  ['contacts','invoices','expenses','receipts'].forEach(k=>{o[k]=Array.isArray(o[k])?o[k]:[];});
+  if((!o.v||o.v<2)&&o.settings.currency==='تومان')o=tomanToRial(o);
+  o.v=2;
+  o._serverRev=n(o._serverRev);
+  o._dirty=!!o._dirty;
+  o._deleted=Array.isArray(o._deleted)?o._deleted:[];
+  o._replaceAll=!!o._replaceAll;
+  o._clearAll=!!o._clearAll;
+  return o;
+}
 function load(){
   let raw=null;try{raw=localStorage.getItem(LS);}catch(e){}
   if(raw){
     try{
-      let o=JSON.parse(raw);
-      if(o&&Array.isArray(o.products)){
-        o.settings=Object.assign(baseSettings(),o.settings||{});
-        o.seq=o.seq||{sale:1001,purchase:501};
-        ['contacts','invoices','expenses','receipts'].forEach(k=>{o[k]=o[k]||[];});
-        if((!o.v||o.v<2)&&o.settings.currency==='تومان')o=tomanToRial(o);
-        o.v=2;
-        o._serverRev=n(o._serverRev);
-        o._dirty=!!o._dirty;
-        o._deleted=Array.isArray(o._deleted)?o._deleted:[];
-        o._replaceAll=!!o._replaceAll;
-        o._clearAll=!!o._clearAll;
-        return o;
-      }
+      const o=normalizeLoadedState(JSON.parse(raw));
+      if(o)return o;
     }catch(e){}
   }
   const s=seedState();
@@ -863,22 +956,81 @@ function load(){
   return s;
 }
 
-/* ===== ذخیره و همگام‌سازی دوطرفه ابری (Supabase) ===== */
-let saveT=null,syncT=null,pollT=null,lastSyncLabel='';
+/* ===== حافظهٔ دوقلوی آفلاین (localStorage + IndexedDB) و همگام‌سازی ابری ===== */
+let saveT=null,syncT=null,retryT=null,pollT=null,lastSyncLabel='',retryCount=0;
+function idbMirrorWrite(snapshot){
+  if(typeof indexedDB==='undefined')return;
+  try{
+    const req=indexedDB.open('novin_ashpazkhaneh_db',1);
+    req.onupgradeneeded=()=>{const db=req.result;if(!db.objectStoreNames.contains('kv'))db.createObjectStore('kv');};
+    req.onsuccess=()=>{
+      try{
+        const db=req.result;
+        const tx=db.transaction('kv','readwrite');
+        tx.objectStore('kv').put(JSON.parse(JSON.stringify(snapshot)),'state');
+        tx.oncomplete=()=>db.close();
+        tx.onerror=()=>db.close();
+      }catch(e){}
+    };
+  }catch(e){}
+}
+function hydrateFromIdbIfNeeded(){
+  if(typeof indexedDB==='undefined')return;
+  try{
+    const req=indexedDB.open('novin_ashpazkhaneh_db',1);
+    req.onupgradeneeded=()=>{const db=req.result;if(!db.objectStoreNames.contains('kv'))db.createObjectStore('kv');};
+    req.onsuccess=()=>{
+      try{
+        const db=req.result;
+        const tx=db.transaction('kv','readonly');
+        const g=tx.objectStore('kv').get('state');
+        g.onsuccess=()=>{
+          db.close();
+          const idbState=normalizeLoadedState(g.result);
+          if(!idbState)return;
+          const curEmpty=!hasAnyLocalRecords()&&!S._dirty&&n(S.rev)===0;
+          if(curEmpty&&(n(idbState.rev)>n(S.rev)||idbState._dirty||(idbState.products&&idbState.products.length))){
+            S=idbState;
+            draft=S.draft||null;
+            if(!draft||!draft.lines)newDraft('sale');
+            try{localStorage.setItem(LS,JSON.stringify(S));}catch(e){}
+            const sn=$('#shopName');if(sn)sn.textContent=S.settings.shop||DEFAULT_SHOP;
+            markState();render();updatePos();
+            if(S._dirty&&canSync())scheduleSync(100);
+          }
+        };
+        g.onerror=()=>db.close();
+      }catch(e){}
+    };
+  }catch(e){}
+}
+function registerBgSync(){
+  if(!('serviceWorker' in navigator)||location.protocol.indexOf('http')!==0)return;
+  navigator.serviceWorker.ready.then(reg=>{
+    if(reg&&reg.sync&&typeof reg.sync.register==='function'){
+      reg.sync.register('novin-cloud-sync').catch(()=>{});
+    }
+  }).catch(()=>{});
+}
 function saveLocalOnly(){
   S.savedAt=new Date().toISOString();
-  try{localStorage.setItem(LS,JSON.stringify(S));}catch(e){toast('حافظهٔ دستگاه پر است!','bad');}
+  try{localStorage.setItem(LS,JSON.stringify(S));}catch(e){toast('حافظهٔ مرورگر پر است؛ در IndexedDB ذخیره شد','bad');}
+  idbMirrorWrite(S);
 }
 function recordDelete(entity,id){
   if(!id)return;
   S._deleted=Array.isArray(S._deleted)?S._deleted:[];
-  S._deleted.push({entity,id:String(id),deletedAt:new Date().toISOString()});
+  const sid=String(id);
+  if(!S._deleted.some(d=>d&&d.entity===entity&&String(d.id)===sid)){
+    S._deleted.push({entity,id:sid,deletedAt:new Date().toISOString()});
+  }
 }
 function markState(txt){
   const el=$('#saveState');
   if(el){
     if(txt)el.textContent=txt;
-    else if(!navigator.onLine)el.textContent='ذخیرهٔ محلی (آفلاین) · '+fmtTime(new Date());
+    else if(!navigator.onLine)el.textContent=(S&&S._dirty?'ذخیرهٔ آفلاین (آماده ارسال به ابر) · ':'آفلاین و آماده · ')+fmtTime(new Date());
+    else if(S&&S._dirty)el.textContent='ذخیرهٔ محلی · در حال همگام‌سازی ابری…';
     else if(lastSyncLabel)el.textContent=lastSyncLabel;
     else el.textContent='ذخیرهٔ محلی · '+fmtTime(new Date());
   }
@@ -891,10 +1043,11 @@ function persist(){
   S.rev=(S.rev||0)+1;
   S._dirty=true;
   saveLocalOnly();
-  markState(navigator.onLine?'ذخیره شد · در انتظار ابر…':'ذخیرهٔ محلی (آفلاین) · '+fmtTime(new Date()));
-  scheduleSync();
+  registerBgSync();
+  markState(navigator.onLine?'ذخیره شد · ارسال خودکار به ابر…':'ذخیرهٔ آفلاین (در صف ارسال به ابر) · '+fmtTime(new Date()));
+  scheduleSync(450);
 }
-function touch(){markState('در حال ذخیره…');if(saveT)clearTimeout(saveT);saveT=setTimeout(persist,320);}
+function touch(){markState('در حال ذخیره…');if(saveT)clearTimeout(saveT);saveT=setTimeout(persist,260);}
 let syncBusy=false;
 function canSync(){
   return !!(S&&S.settings&&S.settings.sync!==false&&typeof fetch==='function'&&location.protocol.indexOf('http')===0&&navigator.onLine);
@@ -919,15 +1072,22 @@ function mergeRows(remoteArr,localArr,tombSet){
   return Array.from(map.values());
 }
 function isUiIdle(){
-  const ov=$('#ov'),sr=$('#search'),sc=$('#scan');
+  const ov=$('#ov'),sr=$('#search'),sc=$('#scan'),pg=$('#permGate');
   const ae=document.activeElement;
   const typing=ae&&(ae.tagName==='INPUT'||ae.tagName==='TEXTAREA'||ae.tagName==='SELECT');
-  return (!ov||ov.hidden)&&(!sr||sr.hidden)&&(!sc||sc.hidden)&&!typing;
+  return (!ov||ov.hidden)&&(!sr||sr.hidden)&&(!sc||sc.hidden)&&(!pg||pg.hidden)&&!typing;
 }
 function scheduleSync(delay){
   if(!canSync())return;
   if(syncT)clearTimeout(syncT);
-  syncT=setTimeout(()=>{syncT=null;syncCycle(true);},typeof delay==='number'?delay:900);
+  syncT=setTimeout(()=>{syncT=null;syncCycle(true);},typeof delay==='number'?delay:700);
+}
+function scheduleRetry(){
+  if(retryT)clearTimeout(retryT);
+  if(!S||!S._dirty)return;
+  const wait=Math.min(30000,2500*Math.pow(1.6,Math.min(retryCount,5)));
+  retryCount++;
+  retryT=setTimeout(()=>{retryT=null;if(canSync())syncCycle(true);},wait);
 }
 async function pushAll(){
   if(!canSync())return false;
@@ -952,6 +1112,8 @@ async function pushAll(){
     });
     const j=await r.json().catch(()=>({}));
     if(r.ok&&j.ok){
+      retryCount=0;
+      if(retryT){clearTimeout(retryT);retryT=null;}
       S._serverRev=n(j.rev);
       S.rev=Math.max(n(S.rev),S._serverRev);
       if(j.seq)S.seq=j.seq;
@@ -965,10 +1127,12 @@ async function pushAll(){
       setSyncInfo('متصل به دیتابیس ابری (Supabase) — آخرین همگام‌سازی: '+fmtTime(new Date()));
       return true;
     }
-    setSyncInfo('خطا در همگام‌سازی ابری — داده‌ها در حافظهٔ دستگاه امن هستند.');
+    setSyncInfo('خطا در همگام‌سازی ابری — داده‌ها در حافظهٔ دستگاه امن هستند و خودکار تلاش مجدد می‌شود.');
+    scheduleRetry();
     return false;
   }catch(e){
-    setSyncInfo('سرور در دسترس نیست — داده‌ها به‌صورت محلی ذخیره شده‌اند.');
+    setSyncInfo('اینترنت در دسترس نیست — تمام تغییرات آفلاین محفوظ است و به‌محض اتصال ارسال می‌شود.');
+    scheduleRetry();
     return false;
   }
 }
@@ -978,8 +1142,8 @@ async function syncCycle(silent){
   syncBusy=true;
   try{
     if(S._clearAll||S._replaceAll){
-      await pushAll();
-      if(!silent)toast('همگام‌سازی ابری انجام شد','ok');
+      const ok=await pushAll();
+      if(!silent)toast(ok?'همگام‌سازی ابری انجام شد':'در صف ارسال خودکار به ابر قرار گرفت',ok?'ok':'bad');
       syncBusy=false;
       return;
     }
@@ -995,7 +1159,7 @@ async function syncCycle(silent){
       if(remote.hasData&&(remoteRev!==n(S._serverRev)||(!hasAnyLocalRecords()&&remoteRev>0))){
         if(remote.settings&&typeof remote.settings==='object'){
           const keepSync=S.settings.sync;
-          S.settings=Object.assign(baseSettings(),remote.settings,{sync:keepSync});
+          S.settings=normalizeShopBranding(Object.assign(baseSettings(),remote.settings,{sync:keepSync}));
         }
         S.products=Array.isArray(remote.products)?remote.products:[];
         S.contacts=Array.isArray(remote.contacts)?remote.contacts:[];
@@ -1009,7 +1173,7 @@ async function syncCycle(silent){
         S.rev=Math.max(n(S.rev),remoteRev);
         S._deleted=[];
         saveLocalOnly();
-        const sn=$('#shopName');if(sn)sn.textContent=S.settings.shop||'دفتر حساب';
+        const sn=$('#shopName');if(sn)sn.textContent=S.settings.shop||DEFAULT_SHOP;
         if(isUiIdle()){render();updatePos();}
       }else if(!remote.hasData&&hasAnyLocalRecords()){
         await pushAll();
@@ -1025,24 +1189,34 @@ async function syncCycle(silent){
         const tombs={products:new Set(),contacts:new Set(),invoices:new Set(),expenses:new Set(),receipts:new Set()};
         (remote.deleted||[]).forEach(d=>{if(d&&tombs[d.entity])tombs[d.entity].add(String(d.id));});
         (S._deleted||[]).forEach(d=>{if(d&&tombs[d.entity])tombs[d.entity].add(String(d.id));});
-        if(remote.settings&&remote.settings.currency&&remote.settings.currency===S.settings.currency){
+        const rCur=(remote.settings&&remote.settings.currency)||S.settings.currency;
+        if(rCur===S.settings.currency){
           S.products=mergeRows(remote.products,S.products,tombs.products);
           S.contacts=mergeRows(remote.contacts,S.contacts,tombs.contacts);
           S.invoices=mergeRows(remote.invoices,S.invoices,tombs.invoices);
           S.expenses=mergeRows(remote.expenses,S.expenses,tombs.expenses);
           S.receipts=mergeRows(remote.receipts,S.receipts,tombs.receipts);
         }
+        if(remote.settings&&typeof remote.settings==='object'){
+          const lt=String(S.settings._updatedAt||''),rt=String(remote.settingsUpdatedAt||'');
+          if(rt&&(!lt||rt>lt)){
+            const keepSync=S.settings.sync;
+            S.settings=normalizeShopBranding(Object.assign(baseSettings(),remote.settings,{sync:keepSync,currency:S.settings.currency}));
+          }
+        }
         if(remote.seq&&typeof remote.seq==='object'){
           S.seq={sale:Math.max(1001,n(S.seq.sale),n(remote.seq.sale)),purchase:Math.max(501,n(S.seq.purchase),n(remote.seq.purchase))};
         }
       }
       const ok=await pushAll();
+      const sn=$('#shopName');if(sn)sn.textContent=S.settings.shop||DEFAULT_SHOP;
       if(ok&&isUiIdle()){render();updatePos();}
-      if(!silent)toast(ok?'همگام‌سازی ابری انجام شد':'خطا در ارتباط با سرور',ok?'ok':'bad');
+      if(!silent)toast(ok?'همگام‌سازی ابری انجام شد':'خطا در ارتباط با سرور؛ در صف ارسال خودکار است',ok?'ok':'bad');
     }
   }catch(e){
-    setSyncInfo('سرور در دسترس نیست — همه‌چیز به‌صورت محلی ذخیره است.');
-    if(!silent)toast('سرور در دسترس نیست؛ ذخیره محلی فعال است','bad');
+    setSyncInfo('سرور در دسترس نیست — تمام تغییرات آفلاین محفوظ است و خودکار ارسال می‌شود.');
+    scheduleRetry();
+    if(!silent)toast('آفلاین؛ تغییرات ذخیره شد و با اتصال اینترنت همگام می‌شود','bad');
   }
   syncBusy=false;
 }
@@ -1195,10 +1369,16 @@ V.home=function(){
   const trend=prev7?round((this7-prev7)/prev7*100,0):0;
   const top=bestSellers('all').slice(0,3);
   const recent=S.invoices.slice().sort((a,b)=>String(b.date).localeCompare(String(a.date))).slice(0,6);
-  let h=phead(S.settings.shop||'دفتر حساب',
+  let h=phead(S.settings.shop||DEFAULT_SHOP,
     fmtNum(S.products.length)+' کالا · '+fmtNum(S.invoices.length)+' فاکتور · '+fmtDate(t),
     '<button class="ibtn" data-act="scan" aria-label="اسکن">'+ic('scan')+'</button>'+
     '<button class="ibtn" data-act="search" aria-label="جستجو">'+ic('search')+'</button>');
+
+  if(deferredInstallPrompt){
+    h+='<div class="pwa-bar"><div><b>نصب وب‌اپ اندروید نوین آشپزخانه</b>'+
+      '<span>اجرای تمام‌صفحه با نهایت سرعت، کارکرد ۱۰۰٪ آفلاین و باز شدن آنی دوربین</span></div>'+
+      '<div class="pwa-acts"><button class="btn b sm" data-act="installPwa">'+ic('down')+' نصب اپ</button></div></div>';
+  }
 
   h+='<div class="hero rise"><div class="band"></div><div class="scrim"></div><div class="bd">'+
     '<div style="display:flex;justify-content:space-between;align-items:center"><span class="tk">ماندهٔ صندوق</span>'+
@@ -1340,7 +1520,7 @@ V.more=function(){
   if(ui.sub==='expenses')return viewExpenses();
   if(ui.sub==='receipts')return viewReceipts();
   if(ui.sub==='settings')return viewSettings();
-  let h=phead('بیشتر','بخش‌های تکمیلی مدیریت','');
+  let h=phead('بیشتر','مدیریت تکمیلی، پشتیبان JSON و وضعیت وب‌اپ','');
   h+='<div class="hub">'+
     tile('users','طرف حساب‌ها',fmtNum(S.contacts.length)+' شخص · مطالبات '+money(receivables()),'sub','accounts')+
     tile('wallet','هزینه‌ها',fmtNum(S.expenses.length)+' سند','sub','expenses')+
@@ -1349,20 +1529,25 @@ V.more=function(){
     tile('chart','گزارش‌ها','سود و زیان، فروش، انبار','nav','reports')+
     tile('gear','تنظیمات','فروشگاه، مالیات، پشتیبان','sub','settings')+
     '</div>';
-  h+='<div class="card" style="margin-top:12px"><div class="chead"><h3>پشتیبان و انتقال</h3></div><div class="cbody">'+
-    '<div class="hint">همهٔ داده‌ها در حافظهٔ همین دستگاه ذخیره می‌شوند؛ برای جابه‌جایی یا نگهداری، پشتیبان بگیرید.</div>'+
+  h+='<div class="card" style="margin-top:12px"><div class="chead"><h3>پشتیبان‌گیری کامل و انتقال اطلاعات (JSON)</h3><span class="badge b-ok">کامل</span></div><div class="cbody">'+
+    '<div class="hint">استخراج کامل تمامی کالاها، فاکتورها، طرف‌حساب‌ها، هزینه‌ها، رسیدها و تنظیمات نوین آشپزخانه در قالب فایل استاندارد JSON و امکان وارد کردن و بازیابی کامل از فایل JSON.</div>'+
     '<div class="rf" style="margin-top:10px">'+
-      '<button class="btn p" data-act="backup">'+ic('down')+' پشتیبان JSON</button>'+
-      '<button class="btn" data-act="restorePick">'+ic('up')+' بازیابی</button></div>'+
+      '<button class="btn p" data-act="backup">'+ic('down')+' استخراج پشتیبان JSON</button>'+
+      '<button class="btn b" data-act="restorePick">'+ic('up')+' وارد کردن فایل JSON</button></div>'+
     '<div class="rf" style="margin-top:8px">'+
-      '<button class="btn" data-act="csvProducts">'+ic('down')+' کالاها</button>'+
-      '<button class="btn" data-act="csvInvoices">'+ic('down')+' فاکتورها</button></div>'+
-    '<input type="file" id="restoreFile" accept="application/json,.json" style="display:none">'+
+      '<button class="btn" data-act="shareBackup">'+ic('db')+' اشتراک‌گذاری فایل پشتیبان</button>'+
+      '<button class="btn" data-act="syncNow">'+ic('check')+' همگام‌سازی فوری ابری</button></div>'+
+    '<div class="rf" style="margin-top:8px">'+
+      '<button class="btn" data-act="csvProducts">'+ic('down')+' خروجی کالاها (CSV)</button>'+
+      '<button class="btn" data-act="csvInvoices">'+ic('down')+' خروجی فاکتورها (CSV)</button></div>'+
     '</div></div>';
-  h+='<div class="card" style="margin-top:12px"><div class="chead"><h3>کاربرد آفلاین</h3><span class="tk">تک‌فایل</span></div><div class="cbody">'+
-    '<div class="hint">این سامانه یک فایل HTML مستقل است؛ فونت و موتور اسکن بارکد داخل خود فایل است و هیچ درخواستی به اینترنت فرستاده نمی‌شود.'+
-    'روی گوشی، صفحه را «به صفحهٔ اصلی اضافه کنید» تا مثل اپ اجرا شود. اسکن دوربین روی آدرس امن (https) یا localhost کار می‌کند و در غیر آن صورت ورود دستی بارکد در دسترس است.</div>'+
-    '<div style="margin-top:10px">'+copyBtn('کپی نام فایل','hsab.html')+'</div></div></div>';
+  h+='<div class="card" style="margin-top:12px"><div class="chead"><h3>وب‌اپ اندروید و اجرای ۱۰۰٪ آفلاین</h3>'+
+    '<span class="badge '+(offlineReadyState.ready?'b-ok':'b-info')+'">'+(offlineReadyState.ready?'آماده آفلاین':'فعال')+'</span></div><div class="cbody">'+
+    '<div class="hint">تمامی فونت‌های ابر، آیکون‌ها، موتور بارکدخوان و هستهٔ سامانه در اولین ورود روی دستگاه ذخیره می‌شوند. هر تغییر آفلاین (افزودن، ویرایش یا حذف) در حافظهٔ دائمی گوشی ثبت شده و به محض اتصال اینترنت خودکار با دیتابیس ابری همگام می‌شود.</div>'+
+    '<div class="rf" style="margin-top:10px">'+
+      '<button class="btn" data-act="grantAllPerms">'+ic('scan')+' بررسی دسترسی دوربین و حافظه</button>'+
+      (deferredInstallPrompt?'<button class="btn b" data-act="installPwa">'+ic('down')+' نصب وب‌اپ اندروید</button>':'')+
+    '</div></div></div>';
   return h;
 };
 function tile(icon,title,sub,act,val){
@@ -1874,6 +2059,7 @@ function openContact(id){
   }
   h+='</div></div>';
   h+='<div class="sf"><button class="btn d" data-act="delContact" data-val="'+c.id+'" style="flex:none;padding:10px" aria-label="حذف طرف حساب">'+ic('trash')+'</button>'+
+    '<button class="btn" data-act="editContact" data-val="'+c.id+'" style="flex:none;padding:10px" aria-label="ویرایش طرف حساب">'+ic('edit')+'</button>'+
     '<button class="btn" data-act="invoiceFor" data-val="'+c.id+'">'+ic('receipt')+' فاکتور</button>'+
     '<button class="btn b" data-act="receiptFor" data-val="'+c.id+'">'+ic('card')+' رسید وجه</button></div>';
   openSheet(h);
@@ -1884,13 +2070,14 @@ function delContact(id){
     S.contacts=S.contacts.filter(x=>x.id!==id);recordDelete('contacts',id);touch();closeSheet();render();toast('طرف حساب حذف شد','ok');
   });
 }
-function contactForm(){
-  openSheet(sheetH('شخص تازه','مشتری یا تأمین‌کننده')+
-    '<form class="sb" id="cform">'+
-    '<label class="f"><span>نام *</span><input class="inp" name="name" autocomplete="off"></label>'+
-    '<div class="rf"><label class="f" style="flex:1.5"><span>تلفن</span><input class="inp" name="phone" inputmode="tel" autocomplete="off"></label>'+
-    '<label class="f"><span>نوع</span><select class="inp" name="kind"><option value="customer">مشتری</option><option value="supplier">تأمین‌کننده</option></select></label></div>'+
-    '<label class="f"><span>یادداشت</span><input class="inp" name="note" autocomplete="off"></label>'+
+function contactForm(id){
+  const ex=id?contact(id):null;
+  openSheet(sheetH(ex?'ویرایش طرف حساب':'شخص تازه','مشتری یا تأمین‌کننده')+
+    '<form class="sb" id="cform" data-id="'+esc(ex?ex.id:'')+'">'+
+    '<label class="f"><span>نام *</span><input class="inp" name="name" value="'+esc(ex?ex.name:'')+'" autocomplete="off"></label>'+
+    '<div class="rf"><label class="f" style="flex:1.5"><span>تلفن</span><input class="inp" name="phone" inputmode="tel" value="'+esc(ex?ex.phone||'':'')+'" autocomplete="off"></label>'+
+    '<label class="f"><span>نوع</span><select class="inp" name="kind"><option value="customer"'+(ex&&ex.kind==='customer'?' selected':'')+'>مشتری</option><option value="supplier"'+(ex&&ex.kind==='supplier'?' selected':'')+'>تأمین‌کننده</option></select></label></div>'+
+    '<label class="f"><span>یادداشت</span><input class="inp" name="note" value="'+esc(ex?ex.note||'':'')+'" autocomplete="off"></label>'+
     '<div class="err" id="cerr" style="display:none"></div></form>'+
     '<div class="sf"><button class="btn" data-act="closeSheet">انصراف</button>'+
     '<button class="btn g" data-act="saveContact">'+ic('check')+' ذخیره</button></div>');
@@ -1900,8 +2087,11 @@ function saveContact(){
   const g=k=>f.querySelector('[name="'+k+'"]');
   const name=g('name').value.trim();
   if(!name){const e=$('#cerr');e.style.display='block';e.textContent='نام الزامی است.';return;}
-  S.contacts.push({id:uid(),name,phone:g('phone').value.trim(),kind:g('kind').value,note:g('note').value.trim(),updatedAt:new Date().toISOString()});
-  touch();closeSheet();render();toast('ثبت شد','ok');
+  const id=f.dataset.id,ts=new Date().toISOString();
+  const payload={name,phone:g('phone').value.trim(),kind:g('kind').value,note:g('note').value.trim(),updatedAt:ts};
+  if(id){const ex=contact(id);if(ex)Object.assign(ex,payload);toast('به‌روزرسانی شد','ok');}
+  else{S.contacts.push(Object.assign({id:uid()},payload));toast('ثبت شد','ok');}
+  touch();closeSheet();render();
 }
 function viewReceipts(){
   const list=S.receipts.slice().sort((a,b)=>String(b.date).localeCompare(String(a.date)));
@@ -1915,40 +2105,54 @@ function viewReceipts(){
     h+='<div class="list">';
     list.forEach(r=>{
       const c=contact(r.contactId);
-      h+='<div class="row"><span class="idx">'+ic(r.dir==='in'?'arrowdn':'arrowup')+'</span>'+
+      h+='<button class="row" data-act="editReceipt" data-val="'+r.id+'"><span class="idx">'+ic(r.dir==='in'?'arrowdn':'arrowup')+'</span>'+
         '<span class="g"><span class="t">'+esc(c?c.name:'صندوق')+'</span><span class="s">'+fmtDate(r.date)+' · '+
         (r.method==='card'?'کارت':(r.method==='bank'?'حواله':'نقدی'))+(r.note?' · '+esc(r.note):'')+'</span></span>'+
-        '<span class="v '+(r.dir==='in'?'pos':'neg')+'">'+(r.dir==='in'?'+':'−')+money(r.amount)+'<small>'+esc(cur())+'</small></span></div>';
+        '<span class="v '+(r.dir==='in'?'pos':'neg')+'">'+(r.dir==='in'?'+':'−')+money(r.amount)+'<small>'+esc(cur())+'</small></span></button>';
     });
     h+='</div>';
   }
   return h;
 }
-function receiptForm(cid){
-  openSheet(sheetH('رسید دریافت / پرداخت','روی صندوق و حساب طرف مقابل اثر می‌گذارد')+
-    '<form class="sb" id="rform">'+
+function receiptForm(cid,rid){
+  const ex=rid?S.receipts.find(x=>x.id===rid):null;
+  const selCid=ex?(ex.contactId||''):(cid||'');
+  const dir=ex?ex.dir:'in';
+  const method=ex?ex.method:'cash';
+  openSheet(sheetH(ex?'ویرایش رسید وجه':'رسید دریافت / پرداخت','روی صندوق و حساب طرف مقابل اثر می‌گذارد')+
+    '<form class="sb" id="rform" data-id="'+esc(ex?ex.id:'')+'">'+
     '<label class="f"><span>طرف حساب</span><select class="inp" name="contactId"><option value="">— بدون شخص —</option>'+
-    S.contacts.map(c=>'<option value="'+c.id+'"'+(cid===c.id?' selected':'')+'>'+esc(c.name)+'</option>').join('')+'</select></label>'+
-    '<div class="seg"><button type="button" class="on" data-act="rdir" data-val="in" id="dirIn">دریافت</button>'+
-    '<button type="button" data-act="rdir" data-val="out" id="dirOut">پرداخت</button></div>'+
-    '<input type="hidden" name="dir" value="in">'+
-    '<div class="rf" style="margin-top:11px"><label class="f"><span>مبلغ</span><input class="inp num" name="amount" inputmode="decimal" placeholder="0" data-num></label>'+
-    '<label class="f"><span>تاریخ</span><input class="inp" type="date" name="date" value="'+todayISO()+'"></label></div>'+
-    '<label class="f"><span>روش</span><select class="inp" name="method"><option value="cash">نقدی</option><option value="card">کارت</option><option value="bank">حواله بانکی</option></select></label>'+
-    '<label class="f"><span>توضیح</span><input class="inp" name="note" autocomplete="off"></label>'+
+    S.contacts.map(c=>'<option value="'+c.id+'"'+(selCid===c.id?' selected':'')+'>'+esc(c.name)+'</option>').join('')+'</select></label>'+
+    '<div class="seg"><button type="button" class="'+(dir==='in'?'on':'')+'" data-act="rdir" data-val="in" id="dirIn">دریافت</button>'+
+    '<button type="button" class="'+(dir==='out'?'on':'')+'" data-act="rdir" data-val="out" id="dirOut">پرداخت</button></div>'+
+    '<input type="hidden" name="dir" value="'+esc(dir)+'">'+
+    '<div class="rf" style="margin-top:11px"><label class="f"><span>مبلغ</span><input class="inp num" name="amount" inputmode="decimal" placeholder="0" value="'+(ex?fmtVal(ex.amount):'')+'" data-num></label>'+
+    '<label class="f"><span>تاریخ</span><input class="inp" type="date" name="date" value="'+esc(ex?ex.date:todayISO())+'"></label></div>'+
+    '<label class="f"><span>روش</span><select class="inp" name="method"><option value="cash"'+(method==='cash'?' selected':'')+'>نقدی</option><option value="card"'+(method==='card'?' selected':'')+'>کارت</option><option value="bank"'+(method==='bank'?' selected':'')+'>حواله بانکی</option></select></label>'+
+    '<label class="f"><span>توضیح</span><input class="inp" name="note" value="'+esc(ex?ex.note||'':'')+'" autocomplete="off"></label>'+
     '<div class="err" id="rerr" style="display:none"></div></form>'+
     '<div class="sf"><button class="btn" data-act="closeSheet">انصراف</button>'+
-    '<button class="btn g" data-act="saveReceipt">'+ic('check')+' ثبت</button></div>');
+    '<button class="btn g" data-act="saveReceipt">'+ic('check')+' ثبت</button>'+
+    (ex?'<button class="btn d" data-act="delReceipt" data-val="'+esc(ex.id)+'" style="flex:none;padding:10px">'+ic('trash')+'</button>':'')+'</div>');
 }
 function saveReceipt(){
   const f=$('#rform');if(!f)return;
   const g=k=>f.querySelector('[name="'+k+'"]');
   const amt=n(g('amount').value);
   if(amt<=0){const e=$('#rerr');e.style.display='block';e.textContent='مبلغ را وارد کنید.';return;}
-  S.receipts.push({id:uid(),date:g('date').value||todayISO(),contactId:g('contactId').value||null,
+  const id=f.dataset.id;
+  const data={date:g('date').value||todayISO(),contactId:g('contactId').value||null,
     dir:g('dir').value==='out'?'out':'in',amount:amt,method:g('method').value,note:g('note').value.trim(),
-    updatedAt:new Date().toISOString()});
-  touch();closeSheet();render();toast('رسید ثبت شد','ok');
+    updatedAt:new Date().toISOString()};
+  if(id){const ex=S.receipts.find(x=>x.id===id);if(ex)Object.assign(ex,data);toast('رسید به‌روزرسانی شد','ok');}
+  else{S.receipts.push(Object.assign({id:uid()},data));toast('رسید ثبت شد','ok');}
+  touch();closeSheet();render();
+}
+function delReceipt(id){
+  const r=S.receipts.find(x=>x.id===id);if(!r)return;
+  confirmSheet('حذف رسید','این رسید وجه حذف شود؟ ماندهٔ صندوق و حساب شخص به‌روز می‌شود.',()=>{
+    S.receipts=S.receipts.filter(x=>x.id!==id);recordDelete('receipts',id);touch();closeSheet();render();toast('رسید حذف شد','ok');
+  });
 }
 function viewExpenses(){
   const list=S.expenses.slice().sort((a,b)=>String(b.date).localeCompare(String(a.date)));
@@ -1960,37 +2164,49 @@ function viewExpenses(){
   else{
     h+='<div class="list">';
     list.forEach(e=>{
-      h+='<div class="row"><span class="idx">'+ic('wallet')+'</span>'+
+      h+='<button class="row" data-act="editExpense" data-val="'+e.id+'"><span class="idx">'+ic('wallet')+'</span>'+
         '<span class="g"><span class="t">'+esc(e.title)+'</span><span class="s">'+
         '<span class="badge b-mute">'+esc(e.category||'سایر')+'</span>'+fmtDate(e.date)+' · '+esc(e.account||'صندوق')+'</span></span>'+
-        '<span class="v neg">−'+money(e.amount)+'<small>'+esc(cur())+'</small></span></div>';
+        '<span class="v neg">−'+money(e.amount)+'<small>'+esc(cur())+'</small></span></button>';
     });
     h+='</div>';
   }
   return h;
 }
-function expenseForm(){
+function expenseForm(eid){
+  const ex=eid?S.expenses.find(x=>x.id===eid):null;
   const cs=[];S.expenses.forEach(e=>{if(e.category&&cs.indexOf(e.category)<0)cs.push(e.category);});
-  openSheet(sheetH('ثبت هزینه','در سود و زیان لحاظ می‌شود')+
-    '<form class="sb" id="eform">'+
-    '<label class="f"><span>موضوع *</span><input class="inp" name="title" autocomplete="off"></label>'+
-    '<div class="rf"><label class="f"><span>مبلغ ('+esc(cur())+')</span><input class="inp num" name="amount" inputmode="decimal" placeholder="0" data-num></label>'+
-    '<label class="f"><span>تاریخ</span><input class="inp" type="date" name="date" value="'+todayISO()+'"></label></div>'+
-    '<div class="rf"><label class="f" style="flex:1.5"><span>سرفصل</span><input class="inp" name="category" list="ecats" autocomplete="off">'+
+  const acc=ex?ex.account||'صندوق':'صندوق';
+  openSheet(sheetH(ex?'ویرایش هزینه':'ثبت هزینه','در سود و زیان لحاظ می‌شود')+
+    '<form class="sb" id="eform" data-id="'+esc(ex?ex.id:'')+'">'+
+    '<label class="f"><span>موضوع *</span><input class="inp" name="title" value="'+esc(ex?ex.title:'')+'" autocomplete="off"></label>'+
+    '<div class="rf"><label class="f"><span>مبلغ ('+esc(cur())+')</span><input class="inp num" name="amount" inputmode="decimal" placeholder="0" value="'+(ex?fmtVal(ex.amount):'')+'" data-num></label>'+
+    '<label class="f"><span>تاریخ</span><input class="inp" type="date" name="date" value="'+esc(ex?ex.date:todayISO())+'"></label></div>'+
+    '<div class="rf"><label class="f" style="flex:1.5"><span>سرفصل</span><input class="inp" name="category" list="ecats" value="'+esc(ex?ex.category||'':'')+'" autocomplete="off">'+
     '<datalist id="ecats">'+cs.map(c=>'<option value="'+esc(c)+'">').join('')+'</datalist></label>'+
-    '<label class="f"><span>حساب</span><select class="inp" name="account"><option>صندوق</option><option>بانک</option><option>تنخواه</option></select></label></div>'+
+    '<label class="f"><span>حساب</span><select class="inp" name="account">'+['صندوق','بانک','تنخواه'].map(a=>'<option'+(acc===a?' selected':'')+'>'+a+'</option>').join('')+'</select></label></div>'+
     '<div class="err" id="eerr" style="display:none"></div></form>'+
     '<div class="sf"><button class="btn" data-act="closeSheet">انصراف</button>'+
-    '<button class="btn g" data-act="saveExpense">'+ic('check')+' ثبت</button></div>');
+    '<button class="btn g" data-act="saveExpense">'+ic('check')+' ثبت</button>'+
+    (ex?'<button class="btn d" data-act="delExpense" data-val="'+esc(ex.id)+'" style="flex:none;padding:10px">'+ic('trash')+'</button>':'')+'</div>');
 }
 function saveExpense(){
   const f=$('#eform');if(!f)return;
   const g=k=>f.querySelector('[name="'+k+'"]');
   const title=g('title').value.trim(),amt=n(g('amount').value);
   if(!title||amt<=0){const e=$('#eerr');e.style.display='block';e.textContent='موضوع و مبلغ را کامل وارد کنید.';return;}
-  S.expenses.unshift({id:uid(),date:g('date').value||todayISO(),title,category:g('category').value.trim()||'سایر',
-    amount:amt,account:g('account').value,updatedAt:new Date().toISOString()});
-  touch();closeSheet();render();toast('هزینه ثبت شد','ok');
+  const id=f.dataset.id;
+  const data={date:g('date').value||todayISO(),title,category:g('category').value.trim()||'سایر',
+    amount:amt,account:g('account').value,updatedAt:new Date().toISOString()};
+  if(id){const ex=S.expenses.find(x=>x.id===id);if(ex)Object.assign(ex,data);toast('هزینه به‌روزرسانی شد','ok');}
+  else{S.expenses.unshift(Object.assign({id:uid()},data));toast('هزینه ثبت شد','ok');}
+  touch();closeSheet();render();
+}
+function delExpense(id){
+  const e=S.expenses.find(x=>x.id===id);if(!e)return;
+  confirmSheet('حذف هزینه','هزینهٔ «'+e.title+'» حذف شود؟',()=>{
+    S.expenses=S.expenses.filter(x=>x.id!==id);recordDelete('expenses',id);touch();closeSheet();render();toast('هزینه حذف شد','ok');
+  });
 }
 
 /* ===== گزارش‌ها ===== */
@@ -1998,14 +2214,14 @@ const RT=[['sales','فروش'],['pl','سود و زیان'],['stock','موجود�
 const RG=[['today','امروز'],['7','۷ روز'],['month','ماه جاری'],['all','کل']];
 function viewSettings(){
   const s=S.settings;
-  let h=phead('تنظیمات','فروشگاه، مالیات، نمایش و داده‌ها','<button class="ibtn" data-act="subBack">'+ic('chev')+'</button>');
+  let h=phead('تنظیمات','فروشگاه نوین آشپزخانه، مالیات، چاپ و پشتیبان JSON','<button class="ibtn" data-act="subBack">'+ic('chev')+'</button>');
   h+='<div class="card"><div class="chead"><h3>اطلاعات فروشگاه</h3></div><div class="cbody">'+
     setF('shop','نام مجموعه',s.shop)+
     '<div class="rf">'+setF('phone','تلفن',s.phone)+setF('vatRate','نرخ ارزش افزوده (٪)',s.vatRate)+'</div>'+
     setF('address','نشانی',s.address)+setF('note','متن پایین فاکتور',s.note)+
     '<label class="f" style="margin:0"><span>موجودی آغازین صندوق</span><input class="inp num" value="'+fmtVal(s.openingCash)+'" data-num data-inp="set:openingCash"></label>'+
     '</div></div>';
-  h+='<div class="card" style="margin-top:12px"><div class="chead"><h3>نمایش و چاپ</h3></div><div class="list" style="border:0;border-radius:0;box-shadow:none">'+
+  h+='<div class="card" style="margin-top:12px"><div class="chead"><h3>نمایش، چاپ و وب‌اپ اندروید</h3></div><div class="list" style="border:0;border-radius:0;box-shadow:none">'+
     '<div class="row" style="cursor:default"><span class="idx">'+ic('tag')+'</span>'+
     '<span class="g"><span class="t">واحد پول</span><span class="s">با تغییر، همهٔ اعداد خودکار ×۱۰ یا ÷۱۰ می‌شوند</span></span>'+
     '<span class="seg" style="flex:none;min-width:130px">'+
@@ -2013,20 +2229,21 @@ function viewSettings(){
       '<button class="'+(s.currency==='تومان'?'on':'')+'" data-act="setCur" data-val="تومان">تومان</button></span></div>'+
     tog('digits','ارقام فارسی',s.digits==='fa','در همهٔ اعداد')+
     tog('thermal','چاپ حرارتی ۸۰ میلی',!!s.thermal,'رسیدپرینتر فروشگاهی')+
-    tog('sync','همگام‌سازی خودکار ابری (Supabase)',s.sync!==false,'پشتیبان زنده بین همهٔ دستگاه‌ها + کارکرد آفلاین')+
+    tog('sync','همگام‌سازی خودکار ابری (Supabase)',s.sync!==false,'ارسال خودکار تغییرات آفلاین در اولین اتصال اینترنت')+
     '</div></div>';
-  h+='<div class="card" style="margin-top:12px"><div class="chead"><h3>وضعیت داده‌ها و سرور</h3></div><div class="cbody">'+
+  h+='<div class="card" style="margin-top:12px"><div class="chead"><h3>پشتیبان‌گیری JSON و دیتابیس ابری</h3></div><div class="cbody">'+
     '<div class="kpis">'+kpi('کالا',fmtNum(S.products.length),'قلم')+kpi('فاکتور',fmtNum(S.invoices.length),'سند')+
     kpi('شخص',fmtNum(S.contacts.length),'طرف حساب')+kpi('هزینه',fmtNum(S.expenses.length),'سند')+'</div>'+
-    '<div class="hint" id="syncState" style="margin-top:10px">'+(lastSyncLabel?'متصل به دیتابیس ابری (Supabase) — '+lastSyncLabel:'ذخیره در حافظهٔ دستگاه + همگام‌سازی خودکار ابری فعال است.')+'</div>'+
-    '<div class="rf" style="margin-top:10px"><button class="btn p" data-act="backup">'+ic('down')+' پشتیبان</button>'+
-    '<button class="btn" data-act="restorePick">'+ic('up')+' بازیابی</button></div>'+
-    '<div class="rf" style="margin-top:8px"><button class="btn" data-act="csvProducts">'+ic('down')+' کالاها</button>'+
-    '<button class="btn" data-act="csvInvoices">'+ic('down')+' فاکتورها</button></div>'+
-    '<div class="rf" style="margin-top:8px"><button class="btn sm" data-act="loadDemo">'+ic('box')+' دادهٔ نمونه</button>'+
-    '<button class="btn sm" data-act="syncNow">'+ic('db')+' همگام‌سازی</button></div>'+
+    '<div class="hint" id="syncState" style="margin-top:10px">'+(lastSyncLabel?'متصل به دیتابیس ابری (Supabase) — '+lastSyncLabel:'ذخیره در حافظهٔ دائمی دستگاه + همگام‌سازی خودکار ابری فعال است.')+'</div>'+
+    '<div class="rf" style="margin-top:10px"><button class="btn p" data-act="backup">'+ic('down')+' استخراج پشتیبان JSON</button>'+
+    '<button class="btn b" data-act="restorePick">'+ic('up')+' وارد کردن JSON</button></div>'+
+    '<div class="rf" style="margin-top:8px"><button class="btn" data-act="shareBackup">'+ic('db')+' اشتراک‌گذاری فایل JSON</button>'+
+    '<button class="btn" data-act="syncNow">'+ic('check')+' همگام‌سازی فوری</button></div>'+
+    '<div class="rf" style="margin-top:8px"><button class="btn" data-act="csvProducts">'+ic('down')+' کالاها (CSV)</button>'+
+    '<button class="btn" data-act="csvInvoices">'+ic('down')+' فاکتورها (CSV)</button></div>'+
+    '<div class="rf" style="margin-top:8px"><button class="btn sm" data-act="grantAllPerms">'+ic('scan')+' بررسی مجوز دوربین و حافظه</button>'+
+    '<button class="btn sm" data-act="loadDemo">'+ic('box')+' دادهٔ نمونه</button></div>'+
     '<div class="rf" style="margin-top:8px"><button class="btn d sm" data-act="clearAll">'+ic('trash')+' پاک‌سازی کامل</button></div>'+
-    '<input type="file" id="restoreFile" accept="application/json,.json" style="display:none">'+
     '</div></div>';
   return h;
 }
@@ -2200,28 +2417,103 @@ function reportCSV(){
   }
   return rows;
 }
+function buildBackupPayload(){
+  const cleanSettings=Object.assign({},baseSettings(),S.settings||{});
+  return {
+    app:DEFAULT_SHOP,
+    backupFormatVersion:3,
+    exportedAt:new Date().toISOString(),
+    v:2,
+    rev:n(S.rev),
+    seq:S.seq||{sale:1001,purchase:501},
+    settings:cleanSettings,
+    products:S.products||[],
+    contacts:S.contacts||[],
+    invoices:S.invoices||[],
+    expenses:S.expenses||[],
+    receipts:S.receipts||[],
+    draft:S.draft||null,
+    summary:{
+      shop:cleanSettings.shop||DEFAULT_SHOP,
+      currency:cleanSettings.currency||'ریال',
+      productsCount:(S.products||[]).length,
+      contactsCount:(S.contacts||[]).length,
+      invoicesCount:(S.invoices||[]).length,
+      expensesCount:(S.expenses||[]).length,
+      receiptsCount:(S.receipts||[]).length
+    }
+  };
+}
+function exportBackupJSON(){
+  const payload=buildBackupPayload();
+  const fname='novin-ashpazkhaneh-backup-'+todayISO()+'.json';
+  download(fname,JSON.stringify(payload,null,2),'application/json;charset=utf-8');
+  return payload;
+}
+async function shareBackupJSON(){
+  try{
+    const payload=buildBackupPayload();
+    const fname='novin-ashpazkhaneh-backup-'+todayISO()+'.json';
+    const text=JSON.stringify(payload,null,2);
+    if(typeof File==='function'&&navigator.canShare&&navigator.share){
+      const file=new File([text],fname,{type:'application/json'});
+      if(navigator.canShare({files:[file]})){
+        await navigator.share({title:'پشتیبان '+DEFAULT_SHOP,text:'فایل پشتیبان کامل اطلاعات '+DEFAULT_SHOP,files:[file]});
+        toast('فایل پشتیبان اشتراک‌گذاری شد','ok');
+        return;
+      }
+    }
+    download(fname,text,'application/json;charset=utf-8');
+  }catch(e){
+    if(e&&e.name==='AbortError')return;
+    exportBackupJSON();
+  }
+}
+function importJSONObject(parsed){
+  let o=(parsed&&typeof parsed==='object'&&!Array.isArray(parsed.products)&&parsed.data&&Array.isArray(parsed.data.products))?parsed.data:parsed;
+  if(!o||!Array.isArray(o.products))throw new Error('bad');
+  const ts=new Date().toISOString();
+  o=JSON.parse(JSON.stringify(o));
+  o.settings=normalizeShopBranding(Object.assign(baseSettings(),o.settings||{}));
+  o.settings._updatedAt=ts;
+  o.seq={
+    sale:Math.max(1001,n(o.seq&&o.seq.sale)),
+    purchase:Math.max(501,n(o.seq&&o.seq.purchase))
+  };
+  ['products','contacts','invoices','expenses','receipts'].forEach(k=>{
+    o[k]=Array.isArray(o[k])?o[k].filter(x=>x&&typeof x==='object').map(x=>Object.assign({id:x.id||uid(),updatedAt:x.updatedAt||ts},x)):[];
+  });
+  if((!o.v||o.v<2)&&o.settings.currency==='تومان')o=tomanToRial(o);
+  o.v=2;
+  o._serverRev=n(S&&S._serverRev);
+  o.rev=Math.max(n(S&&S.rev),n(o.rev))+1;
+  o._deleted=[];
+  o._replaceAll=true;
+  o._clearAll=false;
+  S=o;
+  draft=S.draft&&Array.isArray(S.draft.lines)?S.draft:null;
+  if(!draft)newDraft('sale');
+  const sn=$('#shopName');if(sn)sn.textContent=S.settings.shop||DEFAULT_SHOP;
+  persist();
+  render();
+  updatePos();
+  toast('اطلاعات بازیابی شد ('+fmtNum(S.products.length)+' کالا · '+fmtNum(S.invoices.length)+' فاکتور)','ok');
+  return true;
+}
 function restoreJSON(file){
+  if(!file)return;
   const r=new FileReader();
   r.onload=()=>{
     try{
-      let o=JSON.parse(String(r.result));
-      if(!o||!Array.isArray(o.products))throw new Error('bad');
-      o.settings=Object.assign(baseSettings(),o.settings||{});
-      o.seq=o.seq||{sale:1001,purchase:501};
-      ['contacts','invoices','expenses','receipts'].forEach(k=>{o[k]=o[k]||[];});
-      if((!o.v||o.v<2)&&o.settings.currency==='تومان')o=tomanToRial(o);
-      o.v=2;
-      o._serverRev=n(S&&S._serverRev);
-      o._deleted=[];
-      o._replaceAll=true;
-      o._clearAll=false;
-      S=o;draft=S.draft||null;persist();render();updatePos();toast('پشتیبان بازیابی شد','ok');
-    }catch(e){toast('فایل پشتیبان معتبر نیست','bad');}
+      importJSONObject(JSON.parse(String(r.result)));
+    }catch(e){toast('فایل JSON پشتیبان معتبر نیست','bad');}
   };
-  r.readAsText(file);
+  r.onerror=()=>toast('خواندن فایل JSON ممکن نشد','bad');
+  r.readAsText(file,'utf-8');
 }
 
 /* ===== چاپ ===== */
+const PRINT_LOGO_SVG='<svg class="p-logo" viewBox="0 0 128 128" fill="none"><rect width="128" height="128" rx="26" fill="#0C2337"/><circle cx="64" cy="64" r="46" stroke="#DFB256" stroke-width="5"/><path d="M55 41.5a9 8.5 0 0 1 18 0" stroke="#DFB256" stroke-width="4.5" stroke-linecap="round"/><path d="M35 64c2-15.8 14.2-23.5 29-23.5S91 48.2 93 64H35Z" fill="#DFB256"/><path d="M42.5 61c1.8-9.8 8.6-15.6 17.5-17.2" stroke="#0C2337" stroke-width="3.2" stroke-linecap="round"/><rect x="31" y="66.5" width="66" height="4.8" rx="2.4" fill="#DFB256"/><rect x="35" y="74.5" width="58" height="4.2" rx="1.6" fill="#DFB256"/><rect x="35" y="82" width="58" height="4.2" rx="1.6" fill="#DFB256"/><rect x="35" y="89.5" width="58" height="4.2" rx="1.6" fill="#DFB256"/><circle cx="64" cy="69" r="11" fill="#0C2337" stroke="#DFB256" stroke-width="2.8"/><path d="M59 69.2l3.4 3.5 6.9-7" stroke="#DFB256" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 function ensurePage(){
   let s=$('#pageStyle');
   if(!s){s=document.createElement('style');s.id='pageStyle';document.head.appendChild(s);}
@@ -2230,8 +2522,8 @@ function ensurePage(){
 function doPrint(html){ensurePage();$('#printArea').innerHTML=html;setTimeout(()=>{try{window.print();}catch(e){toast('پنجرهٔ چاپ باز نشد','bad');}},110);}
 function printInvoice(id){
   const i=S.invoices.find(x=>x.id===id);if(!i)return;
-  const s=S.settings,rest=n(i.total)-n(i.paid);
-  let h='<div><div class="p-head"><h1>'+esc(s.shop||'')+'</h1>'+
+  const s=S.settings,rest=n(i.total)-n(i.paid),shopTitle=s.shop||DEFAULT_SHOP;
+  let h='<div><div class="p-head">'+PRINT_LOGO_SVG+'<h1>'+esc(shopTitle)+'</h1>'+
     '<p>'+esc(s.address||'')+'</p><p>'+(s.phone?esc(s.phone):'')+'</p>'+
     '<p style="margin-top:6px;font-size:14px;font-weight:900">'+(i.kind==='sale'?'فاکتور فروش':'فاکتور خرید')+' '+esc(i.no)+'</p></div>'+
     '<div class="p-meta"><span>تاریخ: '+fmtDate(i.date)+'</span><span>'+(i.contactName?'طرف حساب: '+esc(i.contactName):'—')+'</span></div>'+
@@ -2247,25 +2539,81 @@ function printInvoice(id){
     '<div class="big"><span>قابل پرداخت</span><b>'+money(i.total)+' '+esc(s.currency)+'</b></div>'+
     '<div><span>پرداختی</span><b>'+money(i.paid)+'</b></div>'+
     '<div><span>'+(rest>0?'باقیمانده':'وضعیت')+'</span><b>'+(rest>0?money(rest):'تسویه شد')+'</b></div></div>'+
-    '<div class="p-foot">'+esc(s.note||'')+'<br>چاپ: '+fmtDate(todayISO())+' '+fmtTime(new Date())+'</div></div>';
+    '<div class="p-foot">'+esc(s.note||'از خرید شما در نوین آشپزخانه سپاسگزاریم.')+'<br>'+esc(shopTitle)+' · چاپ: '+fmtDate(todayISO())+' '+fmtTime(new Date())+'</div></div>';
   doPrint(h);
 }
 function printLabel(id){
   const p=prod(id);if(!p)return;
+  const shopTitle=S.settings.shop||DEFAULT_SHOP;
   doPrint('<div style="text-align:center"><div style="border:1px solid #000;padding:8px 10px;display:inline-block;min-width:58mm">'+
     '<div style="font-size:12px;font-weight:900">'+esc(p.name)+'</div>'+
     '<div style="font-size:9px;color:#444">'+esc(p.category||'')+'</div>'+
     '<div class="mono" style="font-size:22px;font-weight:900;letter-spacing:.16em;margin-top:4px">'+esc(p.barcode||'—')+'</div>'+
     '<div style="font-size:13px;font-weight:900">'+money(p.price)+' '+esc(cur())+'</div>'+
-    '<div style="font-size:8px;letter-spacing:.1em">'+esc(S.settings.shop||'')+' · '+esc(S.settings.phone||'')+'</div></div></div>');
+    '<div style="font-size:8px;letter-spacing:.1em">'+esc(shopTitle)+' · '+esc(S.settings.phone||'')+'</div></div></div>');
 }
 
-/* ===== اسکن بارکد ===== */
-let cam=null,qr=null,scanMode='lookup',fillTarget=null,lastCode='',lastAt=0,torchOn=false,front=false,loop=null,detector=null;
+/* ===== اسکن بارکد فوق‌سریع (Warm Stream + GPU Direct BarcodeDetector) ===== */
+const CAM_REAR_KEY='novin.camRearId',CAM_FRONT_KEY='novin.camFrontId',PERM_DONE_KEY='novin.permDone';
+let cam=null,camFrontState=false,camIdleT=null,qr=null,scanMode='lookup',fillTarget=null,lastCode='',lastAt=0,torchOn=false,front=false,loop=null,detector=null;
+function initDetectorOnce(){
+  if(detector)return detector;
+  const DC=window.BarcodeDetector;
+  if(!DC)return null;
+  try{
+    detector=new DC({formats:['ean_13','ean_8','upc_a','upc_e','code_39','code_128','itf','codabar','qr_code']});
+  }catch(e){detector=null;}
+  return detector;
+}
+async function cacheBestCameras(){
+  if(!navigator.mediaDevices||!navigator.mediaDevices.enumerateDevices)return;
+  try{
+    const devs=(await navigator.mediaDevices.enumerateDevices()).filter(d=>d.kind==='videoinput'&&d.deviceId);
+    if(!devs.length)return;
+    const rearList=devs.filter(d=>/back|rear|environment/i.test(d.label||''));
+    const frontList=devs.filter(d=>/front|user|selfie/i.test(d.label||''));
+    // ترجیح لنز اصلی واید عقب و پرهیز از اولتراواید / ماکرو / تله در گوشی‌های چنددوربینه اندروید
+    const bestRear=rearList.find(d=>!/ultra|wide\s*angle|0\.5|macro|tele|depth/i.test(d.label||''))||rearList[0]||devs[devs.length-1];
+    const bestFront=frontList[0]||devs[0];
+    try{
+      if(bestRear&&bestRear.deviceId)localStorage.setItem(CAM_REAR_KEY,bestRear.deviceId);
+      if(bestFront&&bestFront.deviceId)localStorage.setItem(CAM_FRONT_KEY,bestFront.deviceId);
+    }catch(e){}
+  }catch(e){}
+}
+function buildFastVideoConstraints(){
+  let prefId='';
+  try{prefId=localStorage.getItem(front?CAM_FRONT_KEY:CAM_REAR_KEY)||'';}catch(e){}
+  const base={
+    width:{ideal:1280},
+    height:{ideal:720},
+    frameRate:{ideal:30,max:60}
+  };
+  if(prefId)base.deviceId={ideal:prefId};
+  base.facingMode=front?'user':{ideal:'environment'};
+  return base;
+}
+function applyFastTrackFocus(stream){
+  try{
+    const track=stream&&stream.getVideoTracks?stream.getVideoTracks()[0]:null;
+    if(!track||!track.getCapabilities||!track.applyConstraints)return;
+    const caps=track.getCapabilities()||{};
+    const adv={};
+    if(Array.isArray(caps.focusMode)&&caps.focusMode.indexOf('continuous')>-1)adv.focusMode='continuous';
+    if(Array.isArray(caps.exposureMode)&&caps.exposureMode.indexOf('continuous')>-1)adv.exposureMode='continuous';
+    if(Array.isArray(caps.whiteBalanceMode)&&caps.whiteBalanceMode.indexOf('continuous')>-1)adv.whiteBalanceMode='continuous';
+    if(Object.keys(adv).length)track.applyConstraints({advanced:[adv]}).catch(()=>{});
+  }catch(e){}
+}
+function isCamAlive(stream){
+  if(!stream||!stream.getVideoTracks)return false;
+  const tr=stream.getVideoTracks()[0];
+  return !!(tr&&tr.readyState==='live');
+}
 function openScan(mode){
   closeSearch();
   scanMode=mode||(ui.tab==='sale'?'sale':'lookup');
-  const t={lookup:'اسکن بارکد',sale:'افزودن به فاکتور',fill:'اسکن بارکد'}[scanMode];
+  const t={lookup:'اسکن بارکد',sale:'افزودن سریع به فاکتور',fill:'اسکن بارکد'}[scanMode];
   $('#scanTitle').textContent=t;
   $('#scanSub').textContent=scanMode==='sale'?'بارکدها را پشت‌سرهم بخوانید':'دوربین را روی بارکد بگیرید';
   $('#scanInfo').innerHTML=scanMode==='sale'
@@ -2277,12 +2625,34 @@ function openScan(mode){
   startScan();
 }
 function closeScan(){
-  stopScan();
+  pauseScan();
   $('#scan').hidden=true;
   document.documentElement.style.overflow='';
   const i=$('#manualCode');if(i)i.value='';
 }
+function pauseScan(){
+  if(loop){cancelAnimationFrame(loop);loop=null;}
+  if(torchOn){
+    try{const tr=cam&&cam.getVideoTracks()[0];if(tr&&tr.applyConstraints)tr.applyConstraints({advanced:[{torch:false}]}).catch(()=>{});}catch(e){}
+    torchOn=false;
+  }
+  try{$('#torchBtn').classList.remove('on');}catch(e){}
+  if(qr){
+    try{const p=qr.stop();if(p&&p.then)p.then(()=>{try{qr.clear();}catch(e){}}).catch(()=>{});}catch(e){}
+    qr=null;
+    const host=$('#qrHost');if(host)host.style.display='none';
+  }
+  // نگه‌داشتن گرم سنسور دوربین برای ۴۵ ثانیه تا اسکن‌های پشت‌سرهم در کسری از ثانیه (~۲۰ms) باز شوند
+  if(isCamAlive(cam)){
+    try{cam.getVideoTracks().forEach(t=>{t.enabled=false;});}catch(e){}
+    if(camIdleT)clearTimeout(camIdleT);
+    camIdleT=setTimeout(()=>{camIdleT=null;if($('#scan').hidden)stopScan();},45000);
+  }else{
+    stopScan();
+  }
+}
 function stopScan(){
+  if(camIdleT){clearTimeout(camIdleT);camIdleT=null;}
   if(loop){cancelAnimationFrame(loop);loop=null;}
   if(cam){try{cam.getTracks().forEach(t=>t.stop());}catch(e){}cam=null;}
   const v=$('#camVideo');if(v){try{v.srcObject=null;}catch(e){}v.style.display='none';}
@@ -2295,17 +2665,39 @@ function stopScan(){
   torchOn=false;
 }
 async function startScan(){
-  stopScan();
+  if(camIdleT){clearTimeout(camIdleT);camIdleT=null;}
+  if(loop){cancelAnimationFrame(loop);loop=null;}
   const info=$('#scanInfo'),sub=$('#scanSub');
   if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){
     sub.textContent='دوربین در دسترس نیست';
     info.innerHTML='این مرورگر دوربین را پشتیبانی نمی‌کند. <b>شمارهٔ بارکد را دستی وارد کنید.</b>';
     return;
   }
+  const v=$('#camVideo');
+  // مسیر فوق‌سریع (Warm Resume): اگر استریم همان لنز آماده است، بلافاصله در <25ms تصویر زنده می‌شود
+  if(isCamAlive(cam)&&camFrontState===front){
+    try{
+      cam.getVideoTracks().forEach(t=>{t.enabled=true;});
+      v.style.display='block';
+      if(v.srcObject!==cam)v.srcObject=cam;
+      v.setAttribute('playsinline','');
+      try{await v.play();}catch(e){}
+      sub.textContent='آماده — بارکد را نشانه بروید';
+      runNative(v);
+      return;
+    }catch(e){
+      stopScan();
+    }
+  }else if(cam){
+    stopScan();
+  }
   try{
-    cam=await navigator.mediaDevices.getUserMedia({audio:false,
-      video:{facingMode:front?'user':{ideal:'environment'},width:{ideal:1280},height:{ideal:720}}});
-    const v=$('#camVideo');
+    initDetectorOnce();
+    cam=await navigator.mediaDevices.getUserMedia({audio:false,video:buildFastVideoConstraints()});
+    camFrontState=front;
+    applyFastTrackFocus(cam);
+    cacheBestCameras();
+    try{localStorage.setItem(PERM_DONE_KEY,'1');}catch(e){}
     v.style.display='block';
     v.srcObject=cam;
     v.setAttribute('playsinline','');
@@ -2323,25 +2715,30 @@ async function startScan(){
   }
 }
 function runNative(video){
-  const opts={formats:['ean_13','ean_8','upc_a','upc_e','code_39','code_128','itf','codabar','qr_code']};
-  const DC=window.BarcodeDetector;
-  if(!DC){useLibrary();return;}
-  try{detector=new DC(opts);}catch(e){useLibrary();return;}
-  const c=document.createElement('canvas');
-  const cx=c.getContext('2d',{willReadFrequently:true});
-  let busy=false;
-  const tick=()=>{
-    if(!cam||!video.videoWidth){loop=requestAnimationFrame(tick);return;}
-    if(!busy){
-      busy=true;
-      try{
-        const w=480,h=Math.round(video.videoHeight/video.videoWidth*w)||320;
-        if(c.width!==w||c.height!==h){c.width=w;c.height=h;}
-        cx.drawImage(video,0,0,w,h);
-        detector.detect(c).then(rs=>{
-          if(rs&&rs.length)onCode(rs[0].rawValue);
-        }).catch(()=>{}).then(()=>{busy=false;});
-      }catch(e){busy=false;}
+  const det=initDetectorOnce();
+  if(!det){useLibrary();return;}
+  let fallbackCanvas=null,fallbackCtx=null,useCanvasFallback=false,busy=false,lastTick=0;
+  const tick=(ts)=>{
+    if($('#scan').hidden||!cam){loop=null;return;}
+    if(!video.videoWidth||video.readyState<2){loop=requestAnimationFrame(tick);return;}
+    if(!busy&&(ts-lastTick>=32)){
+      busy=true;lastTick=ts;
+      const detectPromise=(!useCanvasFallback)
+        ?det.detect(video).catch(()=>{
+            useCanvasFallback=true;
+            fallbackCanvas=document.createElement('canvas');
+            fallbackCtx=fallbackCanvas.getContext('2d',{willReadFrequently:true});
+            return [];
+          })
+        :(()=>{
+            const w=540,h=Math.round(video.videoHeight/video.videoWidth*w)||360;
+            if(fallbackCanvas.width!==w||fallbackCanvas.height!==h){fallbackCanvas.width=w;fallbackCanvas.height=h;}
+            fallbackCtx.drawImage(video,0,0,w,h);
+            return det.detect(fallbackCanvas).catch(()=>[]);
+          })();
+      detectPromise.then(rs=>{
+        if(rs&&rs.length&&rs[0].rawValue)onCode(rs[0].rawValue);
+      }).then(()=>{busy=false;},()=>{busy=false;});
     }
     loop=requestAnimationFrame(tick);
   };
@@ -2354,14 +2751,17 @@ function useLibrary(){
   host.style.display='block';
   host.innerHTML='';
   const w=host.clientWidth||360;
+  let prefId='';
+  try{prefId=localStorage.getItem(front?CAM_FRONT_KEY:CAM_REAR_KEY)||'';}catch(e){}
+  const camSpec=prefId?prefId:(front?{facingMode:'user'}:{facingMode:'environment'});
   const formats=typeof Html5QrcodeSupportedFormats!=='undefined'?
     [Html5QrcodeSupportedFormats.EAN_13,Html5QrcodeSupportedFormats.EAN_8,Html5QrcodeSupportedFormats.UPC_A,
      Html5QrcodeSupportedFormats.UPC_E,Html5QrcodeSupportedFormats.CODE_128,Html5QrcodeSupportedFormats.CODE_39,
      Html5QrcodeSupportedFormats.ITF,Html5QrcodeSupportedFormats.CODABAR,Html5QrcodeSupportedFormats.QR_CODE].filter(Boolean):undefined;
   try{
     qr=new Html5Qrcode('qrHost',Object.assign({verbose:false,disableFlip:false},formats?{formatsToSupport:formats}:{}));
-    qr.start(front?{facingMode:'user'}:{facingMode:'environment'},
-      {fps:12,qrbox:function(){return {width:w,height:Math.round(w*0.7)};},disableFlip:false},
+    qr.start(camSpec,
+      {fps:22,qrbox:function(){return {width:w,height:Math.round(w*0.7)};},disableFlip:false},
       onCode,function(){});
   }catch(e){
     $('#scanSub').textContent='موتور پشتیبان هم در دسترس نیست';
@@ -2370,7 +2770,7 @@ function useLibrary(){
 function onCode(text){
   const now=Date.now();
   if(!text)return;
-  if(String(text)===lastCode&&now-lastAt<1200)return;
+  if(String(text)===lastCode&&now-lastAt<950)return;
   lastCode=String(text);lastAt=now;
   beep();
   handleCode(text);
@@ -2387,7 +2787,7 @@ function handleCode(code){
   if(scanMode==='sale'){
     if(p){
       closeScan();
-      setTimeout(function(){addSheet(p.id);},60);
+      setTimeout(function(){addSheet(p.id);},35);
     }else{
       $('#scanSub').textContent='کالا پیدا نشد';
       const live=$('#scanLive');if(live)live.hidden=true;
@@ -2409,7 +2809,7 @@ function createFromScan(code){
     const f=$('#pform');if(!f)return;
     const b=f.querySelector('[name="barcode"]');if(b)b.value=code;
     const nm=f.querySelector('[name="name"]');if(nm)nm.focus();
-  },60);
+  },45);
 }
 async function toggleTorch(){
   const v=$('#camVideo');
@@ -2427,7 +2827,113 @@ async function toggleTorch(){
 }
 async function switchCam(){
   front=!front;$('#scanSub').textContent='در حال تعویض دوربین…';
-  stopScan();await new Promise(r=>setTimeout(r,160));startScan();
+  stopScan();await new Promise(r=>setTimeout(r,80));startScan();
+}
+
+/* ===== دریافت دسترسی‌ها در بدو ورود، نصب وب‌اپ اندروید و کش آفلاین ===== */
+async function requestAllAppPermissions(userInitiated){
+  let camOk=false,persistOk=false;
+  try{
+    if(navigator.storage&&typeof navigator.storage.persist==='function'){
+      persistOk=await navigator.storage.persist();
+    }
+  }catch(e){}
+  try{
+    if(userInitiated&&'Notification' in window&&Notification.permission==='default'){
+      Notification.requestPermission().catch(()=>{});
+    }
+  }catch(e){}
+  if(navigator.mediaDevices&&navigator.mediaDevices.getUserMedia){
+    try{
+      initDetectorOnce();
+      const tmpStream=await navigator.mediaDevices.getUserMedia({audio:false,video:buildFastVideoConstraints()});
+      applyFastTrackFocus(tmpStream);
+      await cacheBestCameras();
+      tmpStream.getTracks().forEach(t=>t.stop());
+      camOk=true;
+    }catch(e){}
+  }
+  try{localStorage.setItem(PERM_DONE_KEY,'1');}catch(e){}
+  const pg=$('#permGate');if(pg)pg.hidden=true;
+  if(userInitiated){
+    toast(camOk?'دسترسی دوربین و حافظهٔ آفلاین فعال و آماده شد':'حافظهٔ آفلاین آماده شد (دوربین در دسترس نبود)',camOk?'ok':'');
+  }
+  return {camOk,persistOk};
+}
+async function checkStartupPermissions(){
+  initDetectorOnce();
+  try{if(navigator.storage&&navigator.storage.persist)navigator.storage.persist().catch(()=>{});}catch(e){}
+  if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia||location.protocol.indexOf('http')!==0)return;
+  let camState='prompt';
+  if(navigator.permissions&&navigator.permissions.query){
+    try{
+      const st=await navigator.permissions.query({name:'camera'});
+      camState=st.state||'prompt';
+    }catch(e){}
+  }
+  if(camState==='granted'){
+    try{localStorage.setItem(PERM_DONE_KEY,'1');}catch(e){}
+    cacheBestCameras();
+    return;
+  }
+  if(camState==='denied')return;
+  let alreadyDone='';
+  try{alreadyDone=localStorage.getItem(PERM_DONE_KEY)||'';}catch(e){}
+  if(!alreadyDone){
+    // تلاش اولیه برای دریافت خودکار و نمایش درگاه یک‌ضربه‌ای در بدو ورود اندروید
+    const pg=$('#permGate');
+    if(pg)pg.hidden=false;
+  }
+}
+async function installPwa(){
+  if(!deferredInstallPrompt){
+    toast('برای نصب در اندروید، از منوی مرورگر گزینهٔ Install App / افزودن به صفحهٔ اصلی را بزنید');
+    return;
+  }
+  try{
+    deferredInstallPrompt.prompt();
+    const choice=await deferredInstallPrompt.userChoice;
+    if(choice&&choice.outcome==='accepted'){
+      deferredInstallPrompt=null;
+      const tb=$('#topInstallBtn'),pb=$('#permInstallBtn');
+      if(tb)tb.hidden=true;
+      if(pb)pb.hidden=true;
+      render();
+      toast('وب‌اپ نوین آشپزخانه در حال نصب است','ok');
+    }
+  }catch(e){}
+}
+function warmOfflineAssets(){
+  if(document.fonts&&typeof document.fonts.load==='function'){
+    const specs=[
+      '400 14px AbarLow','600 14px AbarLow','700 14px AbarLow','800 14px AbarLow','900 14px AbarLow',
+      '400 15px AbarMid','600 15px AbarMid','700 15px AbarMid','800 15px AbarMid','900 15px AbarMid',
+      '400 22px AbarHigh','600 22px AbarHigh','700 22px AbarHigh','800 22px AbarHigh','900 22px AbarHigh'
+    ];
+    Promise.allSettled(specs.map(s=>document.fonts.load(s))).catch(()=>{});
+  }
+  if('serviceWorker' in navigator&&location.protocol.indexOf('http')===0){
+    navigator.serviceWorker.addEventListener('message',ev=>{
+      const d=ev&&ev.data;
+      if(!d)return;
+      if(d.type==='OFFLINE_STATUS'){
+        offlineReadyState={ready:!!d.ready,cached:n(d.cached),total:n(d.total)||32};
+        if(ui.tab==='more'&&!ui.sub&&isUiIdle())render();
+      }else if(d.type==='TRIGGER_CLOUD_SYNC'){
+        if(canSync())scheduleSync(80);
+      }
+    });
+    navigator.serviceWorker.register('/sw.js',{scope:'/'}).then(reg=>{
+      const askWarm=()=>{
+        const sw=reg.active||reg.waiting||reg.installing;
+        if(sw&&sw.postMessage)sw.postMessage({type:'WARM_CACHE'});
+      };
+      askWarm();
+      navigator.serviceWorker.ready.then(r2=>{
+        if(r2.active)r2.active.postMessage({type:'WARM_CACHE'});
+      }).catch(()=>{});
+    }).catch(()=>{});
+  }
 }
 
 /* ===== جستجو ===== */
@@ -2601,11 +3107,16 @@ document.addEventListener('click',function(e){
       S.seq=d.seq;touch();closeSheet();go('home');toast('دادهٔ نمونه اضافه شد','ok');});break;
     case 'newReceipt':receiptForm(null);break;
     case 'receiptFor':receiptForm(v);break;
+    case 'editReceipt':receiptForm(null,v);break;
     case 'saveReceipt':saveReceipt();break;
+    case 'delReceipt':delReceipt(v);break;
+    case 'editExpense':expenseForm(v);break;
     case 'saveExpense':saveExpense();break;
+    case 'delExpense':delExpense(v);break;
     case 'rdir':{const f=$('#rform');if(f){f.querySelector('[name="dir"]').value=v;
       $('#dirIn').classList.toggle('on',v==='in');$('#dirOut').classList.toggle('on',v==='out');}break;}
     case 'addContact':contactForm();break;
+    case 'editContact':contactForm(v);break;
     case 'saveContact':saveContact();break;
     case 'openContact':openContact(v);break;
     case 'delContact':delContact(v);break;
@@ -2614,12 +3125,16 @@ document.addEventListener('click',function(e){
     case 'rptTab':ui.rtab='sales';go('reports');break;
     case 'rf':ui.rf=v;render();break;
     case 'csvExport':download('report-'+ui.rtab+'-'+todayISO()+'.csv',csv(reportCSV()));break;
-    case 'csvProducts':download('products-'+todayISO()+'.csv',csv([['نام','بارکد','دسته','واحد','خرید','فروش','موجودی','حد هشدار']]
+    case 'csvProducts':download('novin-products-'+todayISO()+'.csv',csv([['نام','بارکد','دسته','واحد','خرید','فروش','موجودی','حد هشدار']]
       .concat(S.products.map(p=>[p.name,p.barcode,p.category,p.unit,n(p.cost),n(p.price),n(p.stock),n(p.min)]))));break;
-    case 'csvInvoices':download('invoices-'+todayISO()+'.csv',csv([['شماره','نوع','تاریخ','طرف حساب','مبلغ','پرداختی','سود']]
+    case 'csvInvoices':download('novin-invoices-'+todayISO()+'.csv',csv([['شماره','نوع','تاریخ','طرف حساب','مبلغ','پرداختی','سود']]
       .concat(S.invoices.map(i=>[i.no,i.kind==='sale'?'فروش':'خرید',i.date,i.contactName||'',n(i.total),n(i.paid),invoiceProfit(i)]))));break;
-    case 'backup':download('daftar-'+todayISO()+'.json',JSON.stringify(S,null,1),'application/json;charset=utf-8');break;
+    case 'backup':exportBackupJSON();break;
+    case 'shareBackup':shareBackupJSON();break;
     case 'restorePick':{const f=$('#restoreFile');if(f)f.click();break;}
+    case 'grantAllPerms':requestAllAppPermissions(true);break;
+    case 'dismissPermGate':{try{localStorage.setItem(PERM_DONE_KEY,'1');}catch(err){}const pg=$('#permGate');if(pg)pg.hidden=true;break;}
+    case 'installPwa':installPwa();break;
     case 'clearAll':confirmSheet('پاک‌سازی کامل','همهٔ داده‌ها از این دستگاه و فضای ابری برای همیشه حذف می‌شوند. ابتدا پشتیبان بگیرید.',()=>{
       const prevRev=Math.max(n(S&&S.rev),n(S&&S._serverRev));
       try{localStorage.removeItem(LS);}catch(err){}
@@ -2679,7 +3194,8 @@ document.addEventListener('input',function(e){
   if(k.indexOf('set:')===0){
     const key=k.slice(4);
     S.settings[key]=(key==='vatRate'||key==='openingCash')?n(v):v;
-    if(key==='shop')$('#shopName').textContent=v||'دفتر حساب';
+    S.settings._updatedAt=new Date().toISOString();
+    if(key==='shop')$('#shopName').textContent=v||DEFAULT_SHOP;
     touch();return;
   }
 });
@@ -2690,6 +3206,7 @@ document.addEventListener('change',function(e){
     if(k==='digits')S.settings.digits=el.checked?'fa':'en';
     else if(k==='thermal')S.settings.thermal=el.checked;
     else if(k==='sync')S.settings.sync=el.checked;
+    S.settings._updatedAt=new Date().toISOString();
     touch();render();return;
   }
   if(el.id==='restoreFile'&&el.files&&el.files[0]){restoreJSON(el.files[0]);el.value='';}
@@ -2697,6 +3214,7 @@ document.addEventListener('change',function(e){
 document.addEventListener('keydown',function(e){
   if((e.ctrlKey||e.metaKey)&&(e.key==='k'||e.key==='K')){e.preventDefault();openSearch();return;}
   if(e.key==='Escape'){
+    const pg=$('#permGate');if(pg&&!pg.hidden){pg.hidden=true;return;}
     if(!$('#scan').hidden){closeScan();return;}
     if(!$('#search').hidden){closeSearch();return;}
     if(!$('#ov').hidden){closeSheet();return;}
@@ -2729,30 +3247,75 @@ document.addEventListener('copy',e=>{
   if(!(t&&(t.tagName==='INPUT'||t.tagName==='TEXTAREA'))){e.preventDefault();toast('برای کپی، از دکمهٔ کپی کنار متن استفاده کنید','bad');}
 });
 document.addEventListener('visibilitychange',()=>{
-  if(document.hidden&&cam)stopScan();
-  else if(!document.hidden&&!$('#scan').hidden&&!cam)startScan();
-  if(!document.hidden&&canSync())scheduleSync(150);
+  if(document.hidden){
+    if(cam||qr)stopScan();
+    if(saveT){clearTimeout(saveT);saveT=null;S.rev=(S.rev||0)+1;S._dirty=true;saveLocalOnly();}
+  }else{
+    if(!$('#scan').hidden&&!cam)startScan();
+    if(canSync())scheduleSync(120);
+  }
+});
+window.addEventListener('pagehide',()=>{
+  if(cam||qr)stopScan();
+  try{if(saveT){clearTimeout(saveT);saveT=null;S.rev=(S.rev||0)+1;S._dirty=true;saveLocalOnly();}}catch(e){}
+});
+window.addEventListener('beforeinstallprompt',e=>{
+  e.preventDefault();
+  deferredInstallPrompt=e;
+  const tb=$('#topInstallBtn'),pb=$('#permInstallBtn');
+  if(tb)tb.hidden=false;
+  if(pb)pb.hidden=false;
+  if(ui.tab==='home'&&isUiIdle())render();
+});
+window.addEventListener('appinstalled',()=>{
+  deferredInstallPrompt=null;
+  const tb=$('#topInstallBtn'),pb=$('#permInstallBtn');
+  if(tb)tb.hidden=true;
+  if(pb)pb.hidden=true;
+  if(ui.tab==='home'&&isUiIdle())render();
+  toast('وب‌اپ نوین آشپزخانه با موفقیت نصب شد','ok');
 });
 
 /* ===== راه‌اندازی ===== */
+function handleLaunchShortcut(){
+  try{
+    const params=new URLSearchParams(location.search||'');
+    const act=params.get('action');
+    if(!act)return;
+    if(history&&history.replaceState)history.replaceState(null,'',location.pathname);
+    if(act==='scan')setTimeout(()=>openScan('sale'),40);
+    else if(act==='sale'){newDraft('sale');go('sale');updatePos();}
+    else if(act==='stock')go('stock');
+    else if(act==='backup')go('more');
+  }catch(e){}
+}
 function boot(){
   try{['daftar.v1','daftar.v2'].forEach(k=>{if(localStorage.getItem(k))localStorage.removeItem(k);});}catch(e){}
   S=load();
   draft=S.draft||null;
   if(!draft||!draft.lines)newDraft('sale');
-  $('#shopName').textContent=S.settings.shop||'دفتر حساب';
+  $('#shopName').textContent=S.settings.shop||DEFAULT_SHOP;
   markState();
   render();
   updatePos();
-  window.addEventListener('online',()=>{markState();scheduleSync(200);toast('اتصال برقرار شد · همگام‌سازی ابری','ok');});
-  window.addEventListener('offline',()=>{markState();toast('آفلاین — همه‌چیز محلی کار می‌کند');});
+  hydrateFromIdbIfNeeded();
+  warmOfflineAssets();
+  checkStartupPermissions();
+  handleLaunchShortcut();
+  window.addEventListener('online',()=>{
+    retryCount=0;
+    markState('اینترنت وصل شد · ارسال تغییرات آفلاین به ابر…');
+    scheduleSync(100);
+    toast('اتصال برقرار شد · همگام‌سازی خودکار با دیتابیس آنلاین','ok');
+  });
+  window.addEventListener('offline',()=>{
+    markState();
+    toast('حالت آفلاین فعال است — تمام تغییرات در دستگاه ذخیره می‌شوند');
+  });
   window.addEventListener('beforeunload',()=>{try{if(saveT){clearTimeout(saveT);saveT=null;S.rev=(S.rev||0)+1;S._dirty=true;saveLocalOnly();}}catch(e){}});
   if(canSync()){
-    setTimeout(()=>syncCycle(true),120);
-    pollT=setInterval(()=>{if(!document.hidden&&canSync()&&!syncBusy&&isUiIdle())syncCycle(true);},20000);
-  }
-  if('serviceWorker' in navigator&&location.protocol.indexOf('http')===0){
-    navigator.serviceWorker.register('/sw.js').catch(()=>{});
+    setTimeout(()=>syncCycle(true),100);
+    pollT=setInterval(()=>{if(!document.hidden&&canSync()&&!syncBusy&&isUiIdle())syncCycle(true);},18000);
   }
 }
 boot();
