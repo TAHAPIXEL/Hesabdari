@@ -1,0 +1,127 @@
+@import "tailwindcss";
+
+@font-face {
+  font-family: "AbarLow";
+  src: url("/fonts/AbarLow-Regular.woff") format("woff");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "AbarLow";
+  src: url("/fonts/AbarLow-SemiBold.woff") format("woff");
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "AbarLow";
+  src: url("/fonts/AbarLow-Bold.woff") format("woff");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "AbarLow";
+  src: url("/fonts/AbarLow-ExtraBold.woff") format("woff");
+  font-weight: 800;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "AbarLow";
+  src: url("/fonts/AbarLow-Black.woff") format("woff");
+  font-weight: 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "AbarMid";
+  src: url("/fonts/AbarMid-Regular.woff") format("woff");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "AbarMid";
+  src: url("/fonts/AbarMid-SemiBold.woff") format("woff");
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "AbarMid";
+  src: url("/fonts/AbarMid-Bold.woff") format("woff");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "AbarMid";
+  src: url("/fonts/AbarMid-ExtraBold.woff") format("woff");
+  font-weight: 800;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "AbarMid";
+  src: url("/fonts/AbarMid-Black.woff") format("woff");
+  font-weight: 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "AbarHigh";
+  src: url("/fonts/AbarHigh-Regular.woff") format("woff");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "AbarHigh";
+  src: url("/fonts/AbarHigh-SemiBold.woff") format("woff");
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "AbarHigh";
+  src: url("/fonts/AbarHigh-Bold.woff") format("woff");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "AbarHigh";
+  src: url("/fonts/AbarHigh-ExtraBold.woff") format("woff");
+  font-weight: 800;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "AbarHigh";
+  src: url("/fonts/AbarHigh-Black.woff") format("woff");
+  font-weight: 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+:root {
+  --font-low: "AbarLow", "AbarMid", system-ui, -apple-system, Tahoma, sans-serif;
+  --font-mid: "AbarMid", "AbarLow", system-ui, -apple-system, Tahoma, sans-serif;
+  --font-high: "AbarHigh", "AbarMid", system-ui, -apple-system, Tahoma, sans-serif;
+}
+
+body {
+  font-family: var(--font-mid);
+}
+
+h1, h2 {
+  font-family: var(--font-high);
+}
+
+small, caption, th, td, label {
+  font-family: var(--font-low);
+}

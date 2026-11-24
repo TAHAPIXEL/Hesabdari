@@ -1,0 +1,123 @@
+import fs from "fs";
+import { JSDOM } from "jsdom";
+
+const html = fs.readFileSync("public/hsab.html", "utf8");
+const dom = new JSDOM(html, {
+  url: "http://localhost/",
+  runScripts: "outside-only",
+  pretendToBeVisual: true,
+});
+const w = dom.window;
+
+const tests = [
+  ["boot", "typeof S==='object' && !!draft"],
+  ["starts completely empty", "S.products.length===0 && S.invoices.length===0 && S.contacts.length===0 && S.expenses.length===0 && S.receipts.length===0"],
+  ["onboarding removed", "ui.tab='home'; render(); document.getElementById('page').innerHTML.indexOf('از همین‌جا شروع کنید')===-1 && typeof onbBlock==='undefined'"],
+  ["empty hero is zero", "document.querySelector('.hero .hnum b').textContent.replace(/[^0-9]/g,'').length<2"],
+  ["load demo data", "(()=>{const d=demoState(); S.products=d.products; S.contacts=d.contacts; S.invoices=d.invoices; S.expenses=d.expenses; S.receipts=d.receipts; S.seq=d.seq; S.settings.openingCash=d.settings.openingCash; draft=null; S.draft=null; render(); return S.products.length>0;})()"],
+  ["sale page has history", "ui.tab='sale'; render(); document.getElementById('page').innerHTML.indexOf('سابقهٔ فاکتورها')>-1"],
+  ["sale empty flow hint", "(()=>{draft.lines=[]; render(); return document.getElementById('page').innerHTML.indexOf('اسکن کنید → صفحهٔ کالا')>-1;})()"],
+  ["add sheet opens", "(()=>{addSheet(S.products[0].id); const q=document.getElementById('aQty'); return !!q && document.getElementById('aTotal').textContent.length>0;})()"],
+  ["qty stepper in sheet", "(()=>{document.querySelector('[data-act=aQty][data-d=\"1\"]').click(); return n(document.getElementById('aQty').value)===2;})()"],
+  ["commit adds line", "(()=>{draft.lines=[]; commitAdd(true); return draft.lines.length===1 && draft.lines[0].qty===2 && document.getElementById('aDone').style.display==='block';})()"],
+  ["sheet footer switches", "document.getElementById('aFoot').innerHTML.indexOf('برگشت به فاکتور')>-1"],
+  ["scanNext commits then scans", "(()=>{addSheet(S.products[1].id); document.querySelector('[data-act=scanNext]').click(); const ok=draft.lines.length===2 && document.getElementById('scan').hidden===false; closeScan(); closeSheet(); return ok;})()"],
+  ["three invoice actions", "(()=>{ui.tab='sale'; render(); const h=document.getElementById('page').innerHTML; return h.indexOf('ثبت فاکتور')>-1 && h.indexOf('delDraft')>-1 && h.indexOf('cancelDraft')>-1;})()"],
+  ["group while typing (latin)", "(()=>{S.settings.digits='en'; const e=document.createElement('input'); document.body.appendChild(e); e.value='1234567'; e.setSelectionRange(7,7); fmtField(e); const v=e.value; e.remove(); S.settings.digits='fa'; return v==='1,234,567';})()"],
+  ["group while typing (persian)", "(()=>{S.settings.digits='fa'; const e=document.createElement('input'); document.body.appendChild(e); e.value='۱۲۵۰۰۰'; e.setSelectionRange(6,6); fmtField(e); const v=e.value; e.remove(); S.settings.digits='fa'; return v==='۱۲۵٬۰۰۰';})()"],
+  ["caret stays after typed digits", "(()=>{S.settings.digits='en'; const e=document.createElement('input'); document.body.appendChild(e); e.value='1234'; e.setSelectionRange(4,4); fmtField(e); const c=e.selectionStart; const v=e.value; e.remove(); S.settings.digits='fa'; return v==='1,234' && c===5;})()"],
+  ["typing price updates field", "(()=>{ui.tab='stock'; ui.sub=null; ui.pq=''; ui.pf='all'; render(); productForm(null); const f=document.querySelector('#pform [name=price]'); f.value='2500000'; f.setSelectionRange(9,9); f.dispatchEvent(new Event('input',{bubbles:true})); const shown=f.value; document.querySelector('#pform [name=name]').value='کالای گران'; document.querySelector('#pform [name=stock]').value='50'; saveProduct(); const saved=S.products[0].price; return n(shown)===2500000 && shown!=='2500000' && saved===2500000;})()"],
+  ["qty typed with decimal ok", "(()=>{S.settings.digits='en'; const e=document.createElement('input'); document.body.appendChild(e); e.value='12.5'; e.setSelectionRange(4,4); fmtField(e); const v=e.value; e.remove(); S.settings.digits='fa'; return v==='12.5';})()"],
+  ...["home", "sale", "stock", "reports", "more"].map((t) => ["view:" + t, `ui.tab=${JSON.stringify(t)}; render(); true`]),
+  ...["accounts", "expenses", "receipts", "settings"].map((t) => ["sub:" + t, `ui.tab='more'; ui.sub=${JSON.stringify(t)}; render(); true`]),
+  ...["sales", "pl", "stock", "debt", "exp"].map((r) => ["report:" + r, `ui.rtab=${JSON.stringify(r)}; ui.tab='reports'; render(); true`]),
+  ...["today", "7", "month", "all"].map((r) => ["range:" + r, `ui.rr=${JSON.stringify(r)}; ui.tab='reports'; render(); true`]),
+  ["report purchase", "ui.rf='purchase'; render(); ui.rf='sale'; true"],
+  ["product filters", "ui.pf='low'; ui.tab='stock'; render(); ui.pf='out'; render(); ui.pf='all'; render(); true"],
+  ["product search", "ui.pq='شیر'; render(); filteredProducts().length>0; ui.pq=''; render(); true"],
+  ["all views no undefined", `['home','sale','stock','reports','more'].forEach(t=>{ui.tab=t;render();
+      if(/undefined|NaN|object Object/.test(document.getElementById('page').innerHTML)) throw new Error('bad html in '+t);}); true`],
+  ["kpis home", "ui.tab='home'; render(); document.querySelectorAll('.kpis .kpi').length>=4"],
+  ["bars chart", "document.querySelectorAll('.bars>div').length===7"],
+  ["hero present", "!!document.querySelector('.hero .hnum b')"],
+  ["search overlay", "openSearch(); searchRender('شیر'); searchRender('ف-'); searchRender('البرز'); searchRender('zzz'); closeSearch(); true"],
+  ["sheet product", "openProduct(S.products[0].id); document.getElementById('ov').hidden===false"],
+  ["sheet form new", "closeSheet(); productForm(null); !!document.getElementById('pform')"],
+  ["sheet form edit", "productForm(S.products[0].id); !!document.querySelector('#pform [name=name]').value"],
+  ["saveProduct", "document.querySelector('#pform [name=name]').value='کالای تست'; document.querySelector('#pform [name=barcode]').value='999'; saveProduct(); S.products[0].name"],
+  ["picker", "pickerSheet(); !!document.getElementById('picklist')"],
+  ["contactForm", "closeSheet(); contactForm(); !!document.getElementById('cform')"],
+  ["receiptForm", "closeSheet(); receiptForm(null); !!document.getElementById('rform')"],
+  ["expenseForm", "closeSheet(); expenseForm(); !!document.getElementById('eform')"],
+  ["openContact", "closeSheet(); openContact(S.contacts[0].id); true"],
+  ["openInvoice", "closeSheet(); openInvoice(S.invoices[0].id); true"],
+  ["closeSheet", "closeSheet(); document.getElementById('ov').hidden"],
+  ["add lines", "ensureDraft(); draft.lines=[]; addToDraft(S.products[0].id); addToDraft(S.products[0].id); addToDraft(S.products[2].id); draft.lines.length===2 && draft.lines[0].qty===2"],
+  ["sale view", "ui.tab='sale'; render(); document.querySelectorAll('.list .row').length>0"],
+  ["totals", "draft.discount=1000; draft.vatOn=true; draft.paid=draftTotal(); (function(){const t=document.getElementById('totBox'); t.innerHTML=totalsHTML(); return draftTotal()>0})()"],
+  ["posbar", "document.getElementById('posbar').className.indexOf('on')>-1 && document.getElementById('posTotal').textContent.length>0"],
+  ["saveInvoice commits to history", "(()=>{if(!draft.lines.length){ensureDraft();addToDraft(S.products[0].id);} const c=S.invoices.length; saveInvoice(); return S.invoices.length===c+1 && document.getElementById('sheet').innerHTML.indexOf('فاکتور ثبت شد')>-1 && document.getElementById('sheet').innerHTML.indexOf('در سابقهٔ فاکتورها ثبت شد')>-1;})()"],
+  ["cancel draft keeps history clean", "(()=>{newDraft('sale'); addToDraft(S.products[2].id); const c=S.invoices.length; document.querySelector('[data-act=cancelDraft]').click(); document.getElementById('yesBtn').click(); return S.invoices.length===c && draft.lines.length===0;})()"],
+  ["del draft clears lines", "(()=>{ui.tab='sale'; newDraft('sale'); addToDraft(S.products[2].id); render(); document.querySelector('[data-act=delDraft]').click(); document.getElementById('yesBtn').click(); return draft.lines.length===0;})()"],
+  ["stock moved on commit", "(()=>{newDraft('sale'); addToDraft(S.products[0].id); const pid=draft.lines[0].pid; const before=prod(pid).stock; saveInvoice(); return prod(pid).stock===before-1;})()"],
+  ["invoice sheet opens", "(()=>{openInvoice(S.invoices[0].id); const ok=document.getElementById('ov').hidden===false && document.getElementById('sheet').innerHTML.indexOf('ویرایش')>-1; closeSheet(); return ok;})()"],
+  ["delete invoice", "(()=>{const c=S.invoices.length; openInvoice(S.invoices[0].id); document.querySelector('[data-act=delInvoice]').click(); document.getElementById('yesBtn').click(); return S.invoices.length===c-1;})()"],
+  ["print invoice", "printInvoice(S.invoices[0].id); document.getElementById('printArea').innerHTML.indexOf('p-head')>-1"],
+  ["print label", "printLabel(S.products[0].id); document.getElementById('printArea').innerHTML.length>50"],
+  ["csv", "csv(reportCSV()).length>10"],
+  ["settings input", "ui.sub='settings'; ui.tab='more'; render(); const i=document.querySelector('[data-inp=\"set:shop\"]'); i.value='فروشگاه تست'; i.dispatchEvent(new Event('input',{bubbles:true})); document.getElementById('shopName').textContent"],
+  ["digits toggle", "(()=>{let c=document.querySelector('[data-tog=digits]'); c.checked=false; c.dispatchEvent(new Event('change',{bubbles:true})); const a=fmtNum(1234); c=document.querySelector('[data-tog=digits]'); c.checked=true; c.dispatchEvent(new Event('change',{bubbles:true})); return a==='1,234';})()"],
+  ["nav paint", "ui.tab='home'; render(); document.querySelectorAll('#tabbar .tab').length===5 && document.querySelectorAll('#rail .tab').length===6"],
+  ["click delegation", "(()=>{document.querySelector('[data-act=\"nav\"][data-val=\"reports\"]').click(); return ui.tab==='reports';})()"],
+  ["search result click", "openSearch(); searchRender('شیر'); const el=document.querySelector('#sres [data-act=pickResult]'); if(el)el.click(); 'el='+!!el+' ov='+document.getElementById('ov').hidden"],
+  ["barcode lookup", "findByBarcode(S.products[0].barcode)!==null"],
+  ["persian digits parse", "n('۱٬۲۵۰٫۵')===1250.5 && n('12,300')===12300"],
+  ["jalali", "fmtDate('2026-03-21').indexOf('1405')===0 || fmtDate('2026-03-21').indexOf('۱۴۰۵')===0"],
+  ["saveContact", "contactForm(); document.querySelector('#cform [name=name]').value='مشتری تست'; saveContact(); S.contacts.length>6"],
+  ["saveExpense", "expenseForm(); document.querySelector('[name=title]').value='تست'; document.querySelector('[name=amount]').value='5000'; saveExpense(); S.expenses.length>6"],
+  ["saveReceipt", "receiptForm(null); document.querySelector('[name=amount]').value='1000'; saveReceipt(); S.receipts.length>2"],
+  ["empty states", "(()=>{const p=S.products.slice(); S.products=[]; ui.tab='stock'; render(); const ok=/کالایی پیدا نشد/.test(document.getElementById('page').textContent); S.products=p; render(); return ok;})()"],
+  ["calc sanity", "isFinite(cashBalance()) && receivables()>=0 && payables()>=0 && stockValue()>0 && cashBalance()>0 && payables()>0"],
+  ["best sellers", "bestSellers('all').length>0"],
+  ["currency switch to toman", "(()=>{const p=S.products.find(x=>x.barcode==='6260001000015'); const before=p.price; setCurrency('تومان'); return cur()==='تومان' && p.price*10===before && p.price===32000;})()"],
+  ["currency back to rial", "(()=>{const p=S.products.find(x=>x.barcode==='6260001000015'); setCurrency('ریال'); return cur()==='ریال' && p.price===320000;})()"],
+  ["currency row in settings", "(()=>{ui.tab='more'; ui.sub='settings'; render(); const h=document.getElementById('page').innerHTML; return h.indexOf('data-act=\"setCur\"')>-1 && h.indexOf('ریال')>-1 && h.indexOf('تومان')>-1;})()"],
+  ["toman survives persist + load()", "(()=>{setCurrency('تومان'); persist(); const loaded=load(); const ok=loaded.settings.currency==='تومان' && loaded.products.length===S.products.length; setCurrency('ریال'); persist(); return ok;})()"],
+  ["lowStock uses p.min accurately", "(()=>{const target=S.products[0]; const oldS=target.stock, oldM=target.min; target.stock=2; target.min=5; const found=lowStock().some(x=>x.id===target.id); target.stock=oldS; target.min=oldM; return found;})()"],
+  ["tombstone recorded on delete", "(()=>{const tmpId=uid(); S.products.unshift({id:tmpId,name:'موقت',stock:1,min:0,cost:10,price:20}); delProduct(tmpId); document.getElementById('yesBtn').click(); return Array.isArray(S._deleted) && S._deleted.some(d=>d.entity==='products'&&d.id===tmpId);})()"],
+  ["abar optical font families configured", "(()=>{const css=[...document.querySelectorAll('style')].map(s=>s.textContent).join('\\n'); return css.includes('AbarLow') && css.includes('AbarMid') && css.includes('AbarHigh') && !css.includes(\"'Vaz'\");})()"],
+];
+
+const cleanTests = tests.filter(x => Array.isArray(x) && typeof x[1] === "string");
+const harness = `;(function(){
+  const T=${JSON.stringify(cleanTests)};
+  const out=[];
+  for(let i=0;i<T.length;i++){
+    const t=T[i];
+    try{
+      const r=eval(t[1]);
+      out.push([t[0],r===false?'ASSERT':'ok',r===undefined?'':String(r)]);
+    }catch(e){
+      out.push([t[0],'ERR',(e&&e.message?e.message:String(e))+' #'+i]);
+    }
+  }
+  window.__out=out;
+})();`;
+
+const scripts = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].map((m) => m[1]);
+try {
+  w.eval(scripts[0] + "\n" + scripts[1] + "\n" + harness);
+} catch (e) {
+  console.log("FATAL", e.stack);
+  process.exit(1);
+}
+let fails = 0;
+const rows = Array.isArray(w.__out) ? w.__out : [];
+for (const row of rows) {
+  if (!Array.isArray(row)) { fails++; console.log("BAD ROW", row); continue; }
+  const [l, st, d] = row;
+  if (st === "ok") console.log("ok  ", l, d === undefined ? "" : "-> " + d);
+  else { fails++; console.log("FAIL", l, "->", d); }
+}
+console.log("\ntotal:", (w.__out || []).length, "failed:", fails);
+process.exit(fails ? 1 : 0);
