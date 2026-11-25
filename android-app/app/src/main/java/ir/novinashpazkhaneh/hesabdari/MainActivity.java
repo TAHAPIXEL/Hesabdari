@@ -9,6 +9,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
+import android.graphics.Insets;
 import android.net.ConnectivityManager;
 import android.net.Network;
 import android.net.NetworkCapabilities;
@@ -21,7 +22,12 @@ import android.print.PrintAttributes;
 import android.print.PrintDocumentAdapter;
 import android.print.PrintManager;
 import android.provider.MediaStore;
+import android.view.View;
 import android.view.ViewGroup;
+import android.view.Window;
+import android.view.WindowInsets;
+import android.view.WindowInsetsController;
+import android.view.WindowManager;
 import android.webkit.CookieManager;
 import android.webkit.JavascriptInterface;
 import android.webkit.PermissionRequest;
@@ -32,7 +38,7 @@ import android.webkit.WebResourceResponse;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
-import android.widget.FrameLayout;
+import android.widget.LinearLayout;
 import android.window.OnBackInvokedCallback;
 import android.window.OnBackInvokedDispatcher;
 
@@ -58,9 +64,14 @@ public class MainActivity extends Activity {
     private static final String APP_ORIGIN = "https://" + APP_HOST;
     private static final int REQ_PERMISSIONS = 1001;
     private static final int REQ_FILE_CHOOSER = 1002;
-    private static final String CACHED_HTML_NAME = "cached_hsab_v6.html";
+    private static final String CACHED_HTML_NAME = "cached_hsab_v7.html";
+
+    private static final int COLOR_NAVY = Color.parseColor("#0C2337");
+    private static final int COLOR_PAPER = Color.parseColor("#FCFAF5");
 
     private WebView webView;
+    private View statusBarSpacer;
+    private View navBarSpacer;
     private ValueCallback<Uri[]> filePathCallback;
     private PermissionRequest pendingWebCameraRequest;
     private ConnectivityManager.NetworkCallback networkCallback;
@@ -72,17 +83,38 @@ public class MainActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        FrameLayout root = new FrameLayout(this);
-        root.setBackgroundColor(Color.parseColor("#FCFAF5"));
+        configureSystemBars();
+
+        LinearLayout root = new LinearLayout(this);
+        root.setOrientation(LinearLayout.VERTICAL);
+        root.setBackgroundColor(COLOR_NAVY);
+
+        statusBarSpacer = new View(this);
+        statusBarSpacer.setBackgroundColor(COLOR_NAVY);
+        root.addView(statusBarSpacer, new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                0
+        ));
 
         webView = new WebView(this);
-        webView.setBackgroundColor(Color.parseColor("#FCFAF5"));
+        webView.setBackgroundColor(COLOR_PAPER);
         webView.setOverScrollMode(WebView.OVER_SCROLL_NEVER);
-        root.addView(webView, new FrameLayout.LayoutParams(
+        LinearLayout.LayoutParams webParams = new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.MATCH_PARENT
+                0,
+                1.0f
+        );
+        root.addView(webView, webParams);
+
+        navBarSpacer = new View(this);
+        navBarSpacer.setBackgroundColor(COLOR_PAPER);
+        root.addView(navBarSpacer, new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                0
         ));
+
         setContentView(root);
+        attachSystemBarInsetsGuard(root);
 
         configureWebView();
         requestStartupPermissions();
@@ -92,6 +124,97 @@ public class MainActivity extends Activity {
         String initialUrl = buildLaunchUrl(getIntent());
         webView.loadUrl(initialUrl);
         refreshCachedHtmlInBackground();
+    }
+
+    @SuppressWarnings("deprecation")
+    private void configureSystemBars() {
+        Window window = getWindow();
+        if (window == null) return;
+
+        window.clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
+        window.clearFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS);
+        window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
+        window.setStatusBarColor(COLOR_NAVY);
+        window.setNavigationBarColor(COLOR_PAPER);
+
+        if (Build.VERSION.SDK_INT >= 30) {
+            window.setDecorFitsSystemWindows(true);
+            WindowInsetsController controller = window.getInsetsController();
+            if (controller != null) {
+                controller.show(WindowInsets.Type.statusBars() | WindowInsets.Type.navigationBars());
+                // White status-bar icons on deep navy (#0C2337), dark nav-bar icons on light paper (#FCFAF5)
+                controller.setSystemBarsAppearance(
+                        0,
+                        WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS
+                );
+                controller.setSystemBarsAppearance(
+                        WindowInsetsController.APPEARANCE_LIGHT_NAVIGATION_BARS,
+                        WindowInsetsController.APPEARANCE_LIGHT_NAVIGATION_BARS
+                );
+            }
+        } else {
+            int flags = View.SYSTEM_UI_FLAG_VISIBLE;
+            if (Build.VERSION.SDK_INT >= 26) {
+                flags |= View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR;
+            }
+            window.getDecorView().setSystemUiVisibility(flags);
+        }
+    }
+
+    @SuppressWarnings("deprecation")
+    private void attachSystemBarInsetsGuard(final LinearLayout root) {
+        root.setOnApplyWindowInsetsListener((view, insets) -> {
+            int topInset;
+            int bottomInset;
+            int leftInset;
+            int rightInset;
+
+            if (Build.VERSION.SDK_INT >= 30) {
+                Insets sys = insets.getInsets(
+                        WindowInsets.Type.systemBars() | WindowInsets.Type.displayCutout()
+                );
+                Insets ime = insets.getInsets(WindowInsets.Type.ime());
+                topInset = sys.top;
+                bottomInset = Math.max(sys.bottom, ime.bottom);
+                leftInset = sys.left;
+                rightInset = sys.right;
+            } else {
+                topInset = insets.getSystemWindowInsetTop();
+                bottomInset = insets.getSystemWindowInsetBottom();
+                leftInset = insets.getSystemWindowInsetLeft();
+                rightInset = insets.getSystemWindowInsetRight();
+            }
+
+            if (statusBarSpacer != null) {
+                ViewGroup.LayoutParams tp = statusBarSpacer.getLayoutParams();
+                if (tp.height != topInset) {
+                    tp.height = topInset;
+                    statusBarSpacer.setLayoutParams(tp);
+                }
+            }
+            if (navBarSpacer != null) {
+                ViewGroup.LayoutParams bp = navBarSpacer.getLayoutParams();
+                if (bp.height != bottomInset) {
+                    bp.height = bottomInset;
+                    navBarSpacer.setLayoutParams(bp);
+                }
+            }
+            if (view.getPaddingLeft() != leftInset || view.getPaddingRight() != rightInset) {
+                view.setPadding(leftInset, 0, rightInset, 0);
+            }
+
+            if (Build.VERSION.SDK_INT >= 30) {
+                return WindowInsets.CONSUMED;
+            }
+            return insets.consumeSystemWindowInsets();
+        });
+        root.requestApplyInsets();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        configureSystemBars();
     }
 
     @Override
@@ -141,7 +264,7 @@ public class MainActivity extends Activity {
         ws.setTextZoom(100);
         ws.setCacheMode(WebSettings.LOAD_DEFAULT);
         ws.setMixedContentMode(WebSettings.MIXED_CONTENT_NEVER_ALLOW);
-        ws.setUserAgentString(ws.getUserAgentString() + " NovinAshpazkhanehAPK/1.0.0");
+        ws.setUserAgentString(ws.getUserAgentString() + " NovinAshpazkhanehAPK/1.0.1");
 
         CookieManager cm = CookieManager.getInstance();
         cm.setAcceptCookie(true);
@@ -318,7 +441,7 @@ public class MainActivity extends Activity {
                     }
                     byte[] data = bos.toByteArray();
                     String preview = new String(data, 0, Math.min(data.length, 512), StandardCharsets.UTF_8);
-                    if (data.length > 20000 && preview.contains("<!DOCTYPE html>")) {
+                    if (data.length > 20000 && preview.toLowerCase().contains("<!doctype html>")) {
                         File tmp = new File(getFilesDir(), CACHED_HTML_NAME + ".tmp");
                         try (FileOutputStream fos = new FileOutputStream(tmp)) {
                             fos.write(data);
