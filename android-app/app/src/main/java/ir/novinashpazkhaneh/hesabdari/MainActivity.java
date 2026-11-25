@@ -84,13 +84,14 @@ public class MainActivity extends Activity {
     private static final int REQ_FILE_CHOOSER = 1002;
     private static final int REQ_WEB_CAMERA = 1003;
     private static final int REQ_MANAGE_STORAGE = 1004;
-    private static final int APP_VERSION_CODE = 9;
-    private static final String CACHED_HTML_NAME = "cached_hsab_v12.html";
+    private static final int APP_VERSION_CODE = 10;
+    private static final String CACHED_HTML_NAME = "cached_hsab_v13.html";
     private static final String PREFS_NAME = "hesabdari_native_prefs";
     private static final String PREF_THEME_KEY = "app.theme";
     private static final String PREF_VER_KEY = "app.installed_version";
 
     private static final int COLOR_PAPER = Color.parseColor("#EEF2F9");
+    private static final int COLOR_LIGHT_BAR = Color.parseColor("#FFFFFF");
     private static final int COLOR_DARK = Color.parseColor("#070B14");
 
     private String currentTheme = "dark";
@@ -245,15 +246,21 @@ public class MainActivity extends Activity {
         }
     }
 
+    @SuppressWarnings("deprecation")
     private void applySystemBarAppearance() {
         try {
             Window window = getWindow();
             if (window == null) return;
             View decorView = window.getDecorView();
             boolean isDark = "dark".equals(currentTheme);
-            int bg = isDark ? COLOR_DARK : COLOR_PAPER;
-            decorView.setBackgroundColor(bg);
-            if (webView != null) webView.setBackgroundColor(bg);
+            int pageBg = isDark ? COLOR_DARK : COLOR_PAPER;
+            int barBg = isDark ? COLOR_DARK : COLOR_LIGHT_BAR;
+            decorView.setBackgroundColor(barBg);
+            if (webView != null) webView.setBackgroundColor(pageBg);
+            try {
+                window.setStatusBarColor(barBg);
+                window.setNavigationBarColor(barBg);
+            } catch (Throwable ignored) {}
             WindowInsetsControllerCompat controller = WindowCompat.getInsetsController(window, decorView);
             // Light (Crystal Daylight) → dark icons on light bars; Dark (Aurora) → light icons
             controller.setAppearanceLightStatusBars(!isDark);
@@ -529,7 +536,7 @@ public class MainActivity extends Activity {
         ws.setTextZoom(100);
         ws.setCacheMode(WebSettings.LOAD_DEFAULT);
         ws.setMixedContentMode(WebSettings.MIXED_CONTENT_NEVER_ALLOW);
-        ws.setUserAgentString(ws.getUserAgentString() + " HesabdariAPK/1.0.6");
+        ws.setUserAgentString(ws.getUserAgentString() + " HesabdariAPK/1.0.7");
 
         CookieManager cm = CookieManager.getInstance();
         cm.setAcceptCookie(true);

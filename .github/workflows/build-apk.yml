@@ -88,8 +88,8 @@ jobs:
             BADGING=$("$AAPT2" dump badging hesabdari.apk)
             echo "$BADGING" | head -n 25
             echo "$BADGING" | grep -q "name='ir.hesabdari.novin'"
-            echo "$BADGING" | grep -q "versionName='1.0.6'"
-            echo "$BADGING" | grep -q "versionCode='9'"
+            echo "$BADGING" | grep -q "versionName='1.0.7'"
+            echo "$BADGING" | grep -q "versionCode='10'"
             echo "$BADGING" | grep -q "حسابداری"
           fi
 
@@ -100,19 +100,19 @@ jobs:
           path: hesabdari.apk
           if-no-files-found: error
 
-      - name: Publish Signed APK to GitHub Releases (v1.0.6 + update older tags)
+      - name: Publish Signed APK to GitHub Releases (v1.0.7 + update older tags)
         if: github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          TAG="v1.0.6"
-          TITLE="اپلیکیشن اندروید حسابداری — فروشگاه نوین آشپزخانه (نسخه ۱.۰.۶)"
-          NOTES="نسخهٔ ۱.۰.۶ اپلیکیشن اندروید **حسابداری** (فروشگاه **نوین آشپزخانه**):
-          - **بازطراحی کامل و بی‌نقص ریسپانسیو و ظاهر برنامه با Tailwind CSS v4:** چیدمان دقیق برای موبایل‌های کوچک، استاندارد، تبلت و دسکتاپ بدون اسکرول افقی
-          - **مهندسی ارگونومیک جایگاه دکمه‌ها:** جداسازی کامل دکمه‌های حذف (\`d-soft\`) از دکمه‌های ذخیره/ثبت، دکمهٔ تمام‌عرض ثبت فاکتور در گام ۴، انتقال پاک‌سازی سبد به هدر کارت، تب فروش دقیقاً در مرکز نوار پایین موبایل، و دکمه‌های برچسب‌دار «بازگشت» با جهت استاندارد فارسی در زیرصفحه‌ها
-          - **چیدمان دوتایی صندوق فروش و سایدبار کامل در دسکتاپ:** اقلام و سابقه در ستون راست + پنل تسویه و ثبت فاکتور چسبان (Sticky) در ستون چپ، به همراه کلیدهای کپسولی مدرن (\`Switch\`)
-          - **هماهنگی کامل هر دو تم تیره (Aurora Neo-Dark \`#070B14\`) و روشن (Crystal Daylight \`#EEF2F9\`):** تطبیق هدر، تب‌بار، سایدبار و نوارهای وضعیت/ناوبری بومی اندروید، همراه با ارتقای کش آفلاین به \`v12\` و حفظ ۱۰۰٪ داده‌های قبلی هنگام نصب روی نسخهٔ پیشین."
-          for OLD_TAG in "v1.0.0" "v1.0.1" "v1.0.2" "v1.0.3" "v1.0.4" "v1.0.5"; do
+          TAG="v1.0.7"
+          TITLE="اپلیکیشن اندروید حسابداری — فروشگاه نوین آشپزخانه (نسخه ۱.۰.۷)"
+          NOTES="نسخهٔ ۱.۰.۷ اپلیکیشن اندروید **حسابداری** (فروشگاه **نوین آشپزخانه**):
+          - **اصلاح ریشه‌ای فاصله‌ها از لبه‌های صفحه و بین تمام باکس‌ها و متون:** حاشیهٔ ایمن ۲۰ پیکسلی در موبایل و ۴۰ پیکسلی در دسکتاپ، فضای تنفس کامل زیر هدر و بالای نوار ناوبری، و فاصلهٔ دقیق بین تمام عنوان‌ها، زیرعنوان‌ها، کارت‌ها و دکمه‌ها
+          - **اصلاح آبشار لایه‌های Tailwind CSS v4 (\`@layer components\` / \`@layer utilities\`) و عبارات \`calc()\`:** عملکرد ۱۰۰٪ دقیق کلاس‌های ریسپانسیو و Safe-Area در مرورگر و WebView اندروید
+          - **هماهنگی کامل و دقیق تم روز (Crystal Daylight) و تم شب (Aurora Neo-Dark):** کالیبراسیون اختصاصی کارت قهرمان، نوار صندوق شناور، فرم‌ها، هدر، تب‌بار و نوارهای وضعیت/ناوبری بومی اندروید در هر دو تم روز و شب
+          - **ارتقای کش آفلاین به \`v13\` و نصب مستقیم روی نسخهٔ قبلی بدون حذف اطلاعات کاربر.**"
+          for OLD_TAG in "v1.0.0" "v1.0.1" "v1.0.2" "v1.0.3" "v1.0.4" "v1.0.5" "v1.0.6"; do
             if gh release view "$OLD_TAG" >/dev/null 2>&1; then
               gh release upload "$OLD_TAG" hesabdari.apk novin-ashpazkhaneh.apk --clobber || true
             fi

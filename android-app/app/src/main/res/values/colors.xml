@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="novin_navy">#081B2C</color>
-    <color name="novin_paper">#FCFAF5</color>
+    <color name="novin_navy">#070B14</color>
+    <color name="novin_paper">#EEF2F9</color>
     <color name="novin_gold">#DFB256</color>
 </resources>
