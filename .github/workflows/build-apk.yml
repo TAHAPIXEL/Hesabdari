@@ -90,17 +90,19 @@ jobs:
           path: novin-ashpazkhaneh.apk
           if-no-files-found: error
 
-      - name: Publish Signed APK to GitHub Releases (v1.0.1 + update v1.0.0)
+      - name: Publish Signed APK to GitHub Releases (v1.0.2 + update v1.0.1 & v1.0.0)
         if: github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          TAG="v1.0.1"
-          TITLE="اپلیکیشن اندروید نوین آشپزخانه (نسخه ۱.۰.۱)"
-          NOTES="نسخهٔ ۱.۰.۱ اپلیکیشن اندروید **نوین آشپزخانه** — با رعایت کامل حاشیهٔ نوار وضعیت و کنترل‌سنتر بالای گوشی و نوار ناوبری پایین (عدم رفتن برنامه زیر نوار بالای اندروید ۱۵)، بدون پرش صفحه، پشتیبانی ۱۰۰٪ آفلاین، بارکدخوان سریع، پشتیبان JSON و همگام‌سازی خودکار ابری."
-          if gh release view "v1.0.0" >/dev/null 2>&1; then
-            gh release upload "v1.0.0" novin-ashpazkhaneh.apk --clobber || true
-          fi
+          TAG="v1.0.2"
+          TITLE="اپلیکیشن اندروید نوین آشپزخانه (نسخه ۱.۰.۲)"
+          NOTES="نسخهٔ ۱.۰.۲ اپلیکیشن اندروید **نوین آشپزخانه** — رفع کامل کرش شروع برنامه و تنظیم دقیق نمایش زیر نوار کنترل‌سنتر و وضعیت بالای گوشی (مشابه همدل با AndroidX WindowInsetsCompat)، بدون پرش صفحه، پشتیبانی ۱۰۰٪ آفلاین، بارکدخوان سریع، پشتیبان JSON و همگام‌سازی خودکار ابری."
+          for OLD_TAG in "v1.0.0" "v1.0.1"; do
+            if gh release view "$OLD_TAG" >/dev/null 2>&1; then
+              gh release upload "$OLD_TAG" novin-ashpazkhaneh.apk --clobber || true
+            fi
+          done
           if gh release view "$TAG" >/dev/null 2>&1; then
             gh release upload "$TAG" novin-ashpazkhaneh.apk --clobber
             gh release edit "$TAG" --title "$TITLE" --notes "$NOTES" --latest
