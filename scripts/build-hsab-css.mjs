@@ -59,7 +59,12 @@ async function build() {
   const sourceCss = readFileSync(SRC_CSS, 'utf8');
 
   console.log('[build-hsab-css] Compiling with @tailwindcss/postcss…');
-  const result = await postcss([tailwindPostcss()]).process(sourceCss, {
+  // optimize:false keeps Lightning CSS from reordering declarations when
+  // NODE_ENV=production (Vercel). Reordering breaks exact-substring smoke
+  // tokens like `#qrHost{display:none` (display must stay first). Our own
+  // minifier below already produces a compact single-line bundle, so the
+  // build is deterministic in every environment.
+  const result = await postcss([tailwindPostcss({ optimize: false })]).process(sourceCss, {
     from: SRC_CSS,
     to: 'inline://hsab.html',
     map: false,
