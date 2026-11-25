@@ -7,11 +7,11 @@ android {
     compileSdk 35
 
     defaultConfig {
-        applicationId "ir.novinashpazkhaneh.hesabdari"
+        applicationId "ir.hesabdari.novin"
         minSdk 24
         targetSdk 35
-        versionCode 6
-        versionName "1.0.3"
+        versionCode 7
+        versionName "1.0.4"
     }
 
     signingConfigs {

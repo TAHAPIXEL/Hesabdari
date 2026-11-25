@@ -146,7 +146,8 @@ const tests = [
   ["app name is حسابداری while shop name is نوین آشپزخانه", "(()=>{const appMeta=document.querySelector('meta[name=\"application-name\"]').content; const sealSvg=document.querySelector('.seal svg').innerHTML; return appMeta==='حسابداری' && S.settings.shop==='نوین آشپزخانه' && document.getElementById('shopName').textContent==='نوین آشپزخانه' && sealSvg.indexOf('M35 64c2-15.8')===-1 && PRINT_LOGO_SVG.indexOf('M35 64c2-15.8')===-1;})()"],
   ["barcode scanner anti-black-screen & offline ZXing hybrid engine", "(()=>{const css=[...document.querySelectorAll('style')].map(s=>s.textContent).join('\\n'); const dec=initZxingDecoderOnce(); return css.includes('#qrHost{display:none!important') && !!dec && typeof dec.decode==='function' && typeof runHybridScanner==='function' && typeof acquireCameraStream==='function';})()"],
   ["all exports route to حسابداری folder via AndroidNative", "(()=>{const saved=[]; window.AndroidNative={saveFile:(n,t,m)=>{saved.push(n);return true;},shareFile:()=>true}; exportBackupJSON(); document.querySelector('[data-act=\"csvExport\"]')?.click?.(); go('reports'); document.querySelector('[data-act=\"csvExport\"]').click(); const msg=document.getElementById('toastMsg').textContent; delete window.AndroidNative; return saved.length>=2 && saved[0].startsWith('hesabdari-backup-') && saved[1].startsWith('hesabdari-report-') && msg.includes('حسابداری');})()"],
-  ["native Android APK JS bridge & back navigation", "(()=>{let saved=null; window.AndroidNative={saveFile:(n,t,m)=>{saved=n;return true;},shareFile:()=>true}; exportBackupJSON(); delete window.AndroidNative; go('reports'); const handled=window.__novinHandleBack(); return !!saved && saved.endsWith('.json') && handled===true && ui.tab==='home' && typeof window.__novinTriggerSync==='function';})()"],
+  ["native Android APK JS bridge & back navigation", "(()=>{let saved=null,nativePermAsked=false; window.AndroidNative={saveFile:(n,t,m)=>{saved=n;return true;},shareFile:()=>true,requestNativePermissions:()=>{nativePermAsked=true;}}; exportBackupJSON(); requestAllAppPermissions(true); delete window.AndroidNative; go('reports'); const handled=window.__novinHandleBack(); return !!saved && saved.endsWith('.json') && nativePermAsked===true && handled===true && ui.tab==='home' && typeof window.__novinTriggerSync==='function';})()"],
+  ["multi-breakpoint RTL responsive shell & anti-overflow rules", "(()=>{const vp=document.querySelector('meta[name=\"viewport\"]').content; const css=[...document.querySelectorAll('style')].map(s=>s.textContent).join('\\n'); return vp.includes('minimum-scale=1') && css.includes('overflow-x:clip') && css.includes('grid-template-columns:minmax(0,1fr)') && css.includes('.cols>*{min-width:0;max-width:100%}') && css.includes('.phead>.row{') && css.includes('grid-template-columns:repeat(5,minmax(0,1fr))') && css.includes('grid-template-columns:repeat(3,minmax(0,1fr))') && css.includes('.hero .hnum b,#aTotal');})()"],
 ];
 
 const cleanTests = tests.filter((x) => Array.isArray(x) && typeof x[1] === "string");
@@ -197,6 +198,8 @@ const mainActivitySrc = fs.readFileSync(
 );
 const themesSrc = fs.readFileSync(`${androidResDir}/values/themes.xml`, "utf8");
 const stringsSrc = fs.readFileSync(`${androidResDir}/values/strings.xml`, "utf8");
+const shortcutsSrc = fs.readFileSync(`${androidResDir}/xml/shortcuts.xml`, "utf8");
+const gradleSrc = fs.readFileSync("android-app/app/build.gradle", "utf8");
 const androidManifestSrc = fs.readFileSync("android-app/app/src/main/AndroidManifest.xml", "utf8");
 const logoSvgSrc = fs.readFileSync("public/icons/logo.svg", "utf8");
 const androidChecks = [
@@ -206,6 +209,8 @@ const androidChecks = [
   ["android app_name is حسابداری and logo.svg is accounting-themed", stringsSrc.includes('<string name="app_name">حسابداری</string>') && !logoSvgSrc.includes("M35 64c2-15.8") && logoSvgSrc.includes("#081B2C")],
   ["android creates top-level حسابداری folder & routes ALL downloads there", mainActivitySrc.includes('HESABDARI_FOLDER_NAME = "حسابداری"') && mainActivitySrc.includes("ensureHesabdariFolderCreated") && mainActivitySrc.includes("setDownloadListener") && mainActivitySrc.includes("saveBase64File") && androidManifestSrc.includes("MANAGE_EXTERNAL_STORAGE") && androidManifestSrc.includes('android:requestLegacyExternalStorage="true"')],
   ["android WebChromeClient transparent poster & dedicated camera permission code", mainActivitySrc.includes("getDefaultVideoPoster") && mainActivitySrc.includes("REQ_WEB_CAMERA")],
+  ["android v1.0.4 clean package ir.hesabdari.novin + explicit launcher icon & shortcuts", gradleSrc.includes('applicationId "ir.hesabdari.novin"') && gradleSrc.includes('versionName "1.0.4"') && gradleSrc.includes("versionCode 7") && shortcutsSrc.includes('android:targetPackage="ir.hesabdari.novin"') && androidManifestSrc.includes('android:icon="@mipmap/ic_launcher"') && !manifest.icons.some((i) => i.sizes === "any" && i.type === "image/svg+xml")],
+  ["android WebView loadWithOverviewMode(false) + ServiceWorkerController + offline fallback", mainActivitySrc.includes("ws.setLoadWithOverviewMode(false)") && mainActivitySrc.includes("ServiceWorkerController.getInstance()") && mainActivitySrc.includes("interceptLocalWebAsset") && mainActivitySrc.includes("loadBundledHtmlFallback") && mainActivitySrc.includes("onRenderProcessGone")],
 ];
 for (const [label, ok] of androidChecks) {
   if (ok) console.log("ok  ", label, "-> true");

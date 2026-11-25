@@ -34,9 +34,13 @@ import android.view.Window;
 import android.webkit.CookieManager;
 import android.webkit.JavascriptInterface;
 import android.webkit.PermissionRequest;
+import android.webkit.RenderProcessGoneDetail;
+import android.webkit.ServiceWorkerClient;
+import android.webkit.ServiceWorkerController;
 import android.webkit.URLUtil;
 import android.webkit.ValueCallback;
 import android.webkit.WebChromeClient;
+import android.webkit.WebResourceError;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebResourceResponse;
 import android.webkit.WebSettings;
@@ -80,7 +84,7 @@ public class MainActivity extends Activity {
     private static final int REQ_FILE_CHOOSER = 1002;
     private static final int REQ_WEB_CAMERA = 1003;
     private static final int REQ_MANAGE_STORAGE = 1004;
-    private static final String CACHED_HTML_NAME = "cached_hsab_v9.html";
+    private static final String CACHED_HTML_NAME = "cached_hsab_v10.html";
     private static final String PREFS_NAME = "hesabdari_native_prefs";
 
     private static final int COLOR_PAPER = Color.parseColor("#FCFAF5");
@@ -91,6 +95,8 @@ public class MainActivity extends Activity {
     private ConnectivityManager.NetworkCallback networkCallback;
     private OnBackInvokedCallback backInvokedCallback;
     private boolean allFilesDialogShownThisSession = false;
+    private boolean startupPermsTriggered = false;
+    private boolean fallbackLoaded = false;
     private Bitmap transparentPosterBitmap;
     private final ExecutorService bgExecutor = Executors.newSingleThreadExecutor();
 
@@ -98,6 +104,8 @@ public class MainActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        cleanupStaleCachedHtml();
 
         FrameLayout root = new FrameLayout(this);
         root.setBackgroundColor(COLOR_PAPER);
@@ -115,13 +123,35 @@ public class MainActivity extends Activity {
 
         configureWebView();
         ensureHesabdariFolderCreated(false);
-        requestStartupPermissionsAndFolderSetup();
         registerNetworkSyncWatcher();
         registerPredictiveBackIfSupported();
 
         String initialUrl = buildLaunchUrl(getIntent());
         webView.loadUrl(initialUrl);
+        webView.postDelayed(this::triggerStartupPermissionsOnce, 1800);
         refreshCachedHtmlInBackground();
+    }
+
+    private void cleanupStaleCachedHtml() {
+        try {
+            File dir = getFilesDir();
+            File[] files = dir != null ? dir.listFiles() : null;
+            if (files == null) return;
+            for (File f : files) {
+                String nm = f.getName();
+                if (nm.startsWith("cached_hsab_") && !CACHED_HTML_NAME.equals(nm)) {
+                    //noinspection ResultOfMethodCallIgnored
+                    f.delete();
+                }
+            }
+        } catch (Throwable ignored) {
+        }
+    }
+
+    private void triggerStartupPermissionsOnce() {
+        if (startupPermsTriggered || isFinishing() || isDestroyed()) return;
+        startupPermsTriggered = true;
+        requestStartupPermissionsAndFolderSetup();
     }
 
     /**
@@ -442,7 +472,7 @@ public class MainActivity extends Activity {
         ws.setMediaPlaybackRequiresUserGesture(false);
         ws.setAllowFileAccess(false);
         ws.setAllowContentAccess(true);
-        ws.setLoadWithOverviewMode(true);
+        ws.setLoadWithOverviewMode(false);
         ws.setUseWideViewPort(true);
         ws.setSupportZoom(false);
         ws.setBuiltInZoomControls(false);
@@ -450,11 +480,25 @@ public class MainActivity extends Activity {
         ws.setTextZoom(100);
         ws.setCacheMode(WebSettings.LOAD_DEFAULT);
         ws.setMixedContentMode(WebSettings.MIXED_CONTENT_NEVER_ALLOW);
-        ws.setUserAgentString(ws.getUserAgentString() + " HesabdariAPK/1.0.3");
+        ws.setUserAgentString(ws.getUserAgentString() + " HesabdariAPK/1.0.4");
 
         CookieManager cm = CookieManager.getInstance();
         cm.setAcceptCookie(true);
         cm.setAcceptThirdPartyCookies(webView, false);
+
+        // Route Service Worker fetches through the same local asset interceptor for instant offline/online launch
+        try {
+            ServiceWorkerController swc = ServiceWorkerController.getInstance();
+            swc.getServiceWorkerWebSettings().setAllowContentAccess(true);
+            swc.getServiceWorkerWebSettings().setAllowFileAccess(false);
+            swc.setServiceWorkerClient(new ServiceWorkerClient() {
+                @Override
+                public WebResourceResponse shouldInterceptRequest(WebResourceRequest request) {
+                    return interceptLocalWebAsset(request);
+                }
+            });
+        } catch (Throwable ignored) {
+        }
 
         webView.addJavascriptInterface(new AndroidBridge(), "AndroidNative");
 
@@ -494,31 +538,7 @@ public class MainActivity extends Activity {
         webView.setWebViewClient(new WebViewClient() {
             @Override
             public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request) {
-                if (request == null || request.getUrl() == null) return null;
-                if (!"GET".equalsIgnoreCase(request.getMethod())) return null;
-
-                Uri uri = request.getUrl();
-                String host = uri.getHost();
-                if (host == null || !APP_HOST.equalsIgnoreCase(host)) {
-                    return null;
-                }
-
-                String path = uri.getPath();
-                if (path == null || path.isEmpty()) {
-                    path = "/";
-                }
-
-                // Never intercept live cloud API endpoints (/api/sync, /api/health)
-                if (path.startsWith("/api/")) {
-                    return null;
-                }
-
-                if ("/".equals(path) || "/hsab.html".equals(path)) {
-                    return serveAppHtml();
-                }
-
-                String assetRelPath = path.startsWith("/") ? path.substring(1) : path;
-                return serveBundledAsset("web/" + assetRelPath, guessMimeType(assetRelPath));
+                return interceptLocalWebAsset(request);
             }
 
             @Override
@@ -544,12 +564,33 @@ public class MainActivity extends Activity {
             }
 
             @Override
+            public void onReceivedError(WebView view, WebResourceRequest request, WebResourceError error) {
+                super.onReceivedError(view, request, error);
+                if (request != null && request.isForMainFrame() && !fallbackLoaded) {
+                    fallbackLoaded = true;
+                    loadBundledHtmlFallback(view, request.getUrl() != null ? request.getUrl().toString() : (APP_ORIGIN + "/"));
+                }
+            }
+
+            @Override
+            public boolean onRenderProcessGone(WebView view, RenderProcessGoneDetail detail) {
+                try {
+                    if (!isFinishing() && !isDestroyed()) {
+                        recreate();
+                    }
+                } catch (Throwable ignored) {
+                }
+                return true;
+            }
+
+            @Override
             public void onPageFinished(WebView view, String url) {
                 super.onPageFinished(view, url);
                 view.evaluateJavascript(
                         "(function(){if(window.AndroidNative&&!window.__novinPrintPatched){window.__novinPrintPatched=true;window.print=function(){window.AndroidNative.printPage();};}})();",
                         null
                 );
+                view.postDelayed(MainActivity.this::triggerStartupPermissionsOnce, 500);
             }
         });
 
@@ -666,6 +707,49 @@ public class MainActivity extends Activity {
             if (conn != null) conn.disconnect();
         }
         return false;
+    }
+
+    private WebResourceResponse interceptLocalWebAsset(WebResourceRequest request) {
+        if (request == null || request.getUrl() == null) return null;
+        if (!"GET".equalsIgnoreCase(request.getMethod())) return null;
+
+        Uri uri = request.getUrl();
+        String host = uri.getHost();
+        if (host == null || !APP_HOST.equalsIgnoreCase(host)) {
+            return null;
+        }
+
+        String path = uri.getPath();
+        if (path == null || path.isEmpty()) {
+            path = "/";
+        }
+
+        // Never intercept live cloud API endpoints (/api/sync, /api/health)
+        if (path.startsWith("/api/")) {
+            return null;
+        }
+
+        if ("/".equals(path) || "/hsab.html".equals(path)) {
+            return serveAppHtml();
+        }
+
+        String assetRelPath = path.startsWith("/") ? path.substring(1) : path;
+        return serveBundledAsset("web/" + assetRelPath, guessMimeType(assetRelPath));
+    }
+
+    private void loadBundledHtmlFallback(WebView view, String baseUrl) {
+        try (InputStream is = getAssets().open("web/hsab.html")) {
+            ByteArrayOutputStream bos = new ByteArrayOutputStream();
+            byte[] buf = new byte[8192];
+            int r;
+            while ((r = is.read(buf)) != -1) {
+                bos.write(buf, 0, r);
+            }
+            String html = new String(bos.toByteArray(), StandardCharsets.UTF_8);
+            String originBase = (baseUrl != null && baseUrl.startsWith(APP_ORIGIN)) ? baseUrl : (APP_ORIGIN + "/");
+            view.loadDataWithBaseURL(originBase, html, "text/html", "UTF-8", originBase);
+        } catch (Exception ignored) {
+        }
     }
 
     private WebResourceResponse serveAppHtml() {
@@ -944,6 +1028,14 @@ public class MainActivity extends Activity {
     }
 
     private final class AndroidBridge {
+
+        @JavascriptInterface
+        public void requestNativePermissions() {
+            runOnUiThread(() -> {
+                allFilesDialogShownThisSession = false;
+                requestStartupPermissionsAndFolderSetup();
+            });
+        }
 
         @JavascriptInterface
         public boolean saveFile(String fileName, String content, String mimeType) {
