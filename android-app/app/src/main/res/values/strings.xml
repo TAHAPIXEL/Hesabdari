@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">نوین آشپزخانه</string>
+    <string name="app_name">حسابداری</string>
     <string name="sc_scan_short">اسکن بارکد</string>
     <string name="sc_scan_long">اسکن سریع بارکد کالا</string>
     <string name="sc_sale_short">فاکتور جدید</string>

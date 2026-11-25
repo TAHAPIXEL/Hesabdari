@@ -3,13 +3,17 @@ package ir.novinashpazkhaneh.hesabdari;
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
+import android.graphics.Bitmap;
 import android.graphics.Color;
+import android.media.MediaScannerConnection;
 import android.net.ConnectivityManager;
 import android.net.Network;
 import android.net.NetworkCapabilities;
@@ -22,12 +26,15 @@ import android.print.PrintAttributes;
 import android.print.PrintDocumentAdapter;
 import android.print.PrintManager;
 import android.provider.MediaStore;
+import android.provider.Settings;
+import android.util.Base64;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.webkit.CookieManager;
 import android.webkit.JavascriptInterface;
 import android.webkit.PermissionRequest;
+import android.webkit.URLUtil;
 import android.webkit.ValueCallback;
 import android.webkit.WebChromeClient;
 import android.webkit.WebResourceRequest;
@@ -36,6 +43,7 @@ import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.FrameLayout;
+import android.widget.Toast;
 import android.window.OnBackInvokedCallback;
 import android.window.OnBackInvokedDispatcher;
 
@@ -53,6 +61,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -63,11 +72,16 @@ import java.util.concurrent.Executors;
 
 public class MainActivity extends Activity {
 
+    public static final String HESABDARI_FOLDER_NAME = "حسابداری";
+
     private static final String APP_HOST = "hesabdari-taupe.vercel.app";
     private static final String APP_ORIGIN = "https://" + APP_HOST;
-    private static final int REQ_PERMISSIONS = 1001;
+    private static final int REQ_STARTUP_PERMS = 1001;
     private static final int REQ_FILE_CHOOSER = 1002;
-    private static final String CACHED_HTML_NAME = "cached_hsab_v8.html";
+    private static final int REQ_WEB_CAMERA = 1003;
+    private static final int REQ_MANAGE_STORAGE = 1004;
+    private static final String CACHED_HTML_NAME = "cached_hsab_v9.html";
+    private static final String PREFS_NAME = "hesabdari_native_prefs";
 
     private static final int COLOR_PAPER = Color.parseColor("#FCFAF5");
 
@@ -76,6 +90,8 @@ public class MainActivity extends Activity {
     private PermissionRequest pendingWebCameraRequest;
     private ConnectivityManager.NetworkCallback networkCallback;
     private OnBackInvokedCallback backInvokedCallback;
+    private boolean allFilesDialogShownThisSession = false;
+    private Bitmap transparentPosterBitmap;
     private final ExecutorService bgExecutor = Executors.newSingleThreadExecutor();
 
     @SuppressLint({"SetJavaScriptEnabled", "AddJavascriptInterface"})
@@ -98,7 +114,8 @@ public class MainActivity extends Activity {
         setupSystemBars();
 
         configureWebView();
-        requestStartupPermissions();
+        ensureHesabdariFolderCreated(false);
+        requestStartupPermissionsAndFolderSetup();
         registerNetworkSyncWatcher();
         registerPredictiveBackIfSupported();
 
@@ -171,6 +188,7 @@ public class MainActivity extends Activity {
     protected void onResume() {
         super.onResume();
         applySystemBarAppearance();
+        ensureHesabdariFolderCreated(true);
     }
 
     @Override
@@ -209,6 +227,212 @@ public class MainActivity extends Activity {
         return APP_ORIGIN + "/";
     }
 
+    /**
+     * Checks whether this app can directly create/write top-level /storage/emulated/0/حسابداری.
+     */
+    private boolean canWriteTopLevelStorage() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            return Environment.isExternalStorageManager();
+        }
+        return checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED;
+    }
+
+    /**
+     * Returns the top-level phone folder /storage/emulated/0/حسابداری among main folders.
+     */
+    private File getTopLevelHesabdariDir() {
+        return new File(Environment.getExternalStorageDirectory(), HESABDARI_FOLDER_NAME);
+    }
+
+    /**
+     * Ensures the top-level folder "حسابداری" exists in the phone's main internal storage root.
+     */
+    private boolean ensureHesabdariFolderCreated(boolean notifyIfFirstTime) {
+        try {
+            if (!canWriteTopLevelStorage()) {
+                return false;
+            }
+            File dir = getTopLevelHesabdariDir();
+            boolean existedBefore = dir.exists() && dir.isDirectory();
+            boolean ok = existedBefore || dir.mkdirs();
+            if (ok) {
+                SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
+                boolean announced = prefs.getBoolean("hesabdari_folder_ready", false);
+                if (!announced) {
+                    prefs.edit().putBoolean("hesabdari_folder_ready", true).apply();
+                    if (notifyIfFirstTime) {
+                        Toast.makeText(
+                                this,
+                                "پوشهٔ «حسابداری» در پوشه‌های اصلی حافظهٔ گوشی ساخته شد",
+                                Toast.LENGTH_LONG
+                        ).show();
+                    }
+                }
+            }
+            return ok;
+        } catch (Throwable ignored) {
+            return false;
+        }
+    }
+
+    private void openAllFilesAccessSettings() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) return;
+        try {
+            Intent intent = new Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION);
+            intent.setData(Uri.parse("package:" + getPackageName()));
+            startActivityForResult(intent, REQ_MANAGE_STORAGE);
+        } catch (Exception e) {
+            try {
+                Intent fallback = new Intent(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION);
+                startActivityForResult(fallback, REQ_MANAGE_STORAGE);
+            } catch (Exception ignored) {
+            }
+        }
+    }
+
+    private void promptAllFilesAccessDialog(boolean forceShow) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) return;
+        if (Environment.isExternalStorageManager()) {
+            ensureHesabdariFolderCreated(true);
+            return;
+        }
+        if (!forceShow && allFilesDialogShownThisSession) return;
+        allFilesDialogShownThisSession = true;
+
+        runOnUiThread(() -> {
+            if (isFinishing() || isDestroyed()) return;
+            try {
+                AlertDialog dialog = new AlertDialog.Builder(MainActivity.this)
+                        .setTitle("ساخت پوشهٔ اصلی «حسابداری»")
+                        .setMessage("برای ایجاد پوشهٔ «حسابداری» بین پوشه‌های اصلی حافظهٔ گوشی و ذخیرهٔ خودکار تمام فایل‌های دانلودی داخل آن، لطفاً در صفحهٔ بعد کلید دسترسی مدیریت فایل‌ها را روشن کنید.")
+                        .setCancelable(true)
+                        .setPositiveButton("فعال‌سازی", (d, which) -> openAllFilesAccessSettings())
+                        .setNegativeButton("بعداً", (d, which) -> d.dismiss())
+                        .create();
+                dialog.show();
+            } catch (Throwable ignored) {
+            }
+        });
+    }
+
+    /**
+     * Central helper that saves EVERY downloaded/exported file inside the "حسابداری" folder.
+     */
+    private boolean saveBytesToHesabdariFolder(String rawFileName, byte[] bytes, String rawMime) {
+        String safeName = sanitizeFileName(rawFileName);
+        String cleanMime = cleanMimeType(rawMime, safeName);
+        byte[] payload = bytes != null ? bytes : new byte[0];
+
+        // 1. Primary path: top-level phone folder /storage/emulated/0/حسابداری
+        if (canWriteTopLevelStorage()) {
+            try {
+                File rootFolder = getTopLevelHesabdariDir();
+                if (!rootFolder.exists()) {
+                    //noinspection ResultOfMethodCallIgnored
+                    rootFolder.mkdirs();
+                }
+                if (rootFolder.exists() && rootFolder.isDirectory()) {
+                    File outFile = new File(rootFolder, safeName);
+                    try (FileOutputStream fos = new FileOutputStream(outFile)) {
+                        fos.write(payload);
+                        fos.flush();
+                    }
+                    MediaScannerConnection.scanFile(
+                            MainActivity.this,
+                            new String[]{outFile.getAbsolutePath()},
+                            new String[]{cleanMime},
+                            null
+                    );
+                    return true;
+                }
+            } catch (Exception ignored) {
+            }
+        }
+
+        // 2. Fallback path if Android 11+ All-Files Access has not been toggled yet:
+        //    Save into Download/حسابداری via MediaStore so the file is STILL inside "حسابداری",
+        //    and prompt the user to enable All-Files Access for top-level /storage/emulated/0/حسابداری.
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            try {
+                ContentResolver resolver = getContentResolver();
+                ContentValues values = new ContentValues();
+                values.put(MediaStore.MediaColumns.DISPLAY_NAME, safeName);
+                values.put(MediaStore.MediaColumns.MIME_TYPE, cleanMime);
+                values.put(
+                        MediaStore.MediaColumns.RELATIVE_PATH,
+                        Environment.DIRECTORY_DOWNLOADS + "/" + HESABDARI_FOLDER_NAME
+                );
+                Uri uri = resolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, values);
+                if (uri != null) {
+                    try (OutputStream os = resolver.openOutputStream(uri)) {
+                        if (os != null) {
+                            os.write(payload);
+                            os.flush();
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && !Environment.isExternalStorageManager()) {
+                                promptAllFilesAccessDialog(true);
+                            }
+                            return true;
+                        }
+                    }
+                }
+            } catch (Exception ignored) {
+            }
+        }
+
+        // 3. Legacy Android 7-9 fallback
+        try {
+            File legacyRoot = getTopLevelHesabdariDir();
+            if (!legacyRoot.exists() && !legacyRoot.mkdirs()) {
+                File dl = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
+                legacyRoot = new File(dl, HESABDARI_FOLDER_NAME);
+                //noinspection ResultOfMethodCallIgnored
+                legacyRoot.mkdirs();
+            }
+            File outFile = new File(legacyRoot, safeName);
+            try (FileOutputStream fos = new FileOutputStream(outFile)) {
+                fos.write(payload);
+                fos.flush();
+            }
+            MediaScannerConnection.scanFile(
+                    MainActivity.this,
+                    new String[]{outFile.getAbsolutePath()},
+                    new String[]{cleanMime},
+                    null
+            );
+            return true;
+        } catch (Exception ignored) {
+        }
+
+        return false;
+    }
+
+    private String sanitizeFileName(String raw) {
+        if (raw == null || raw.trim().isEmpty()) {
+            return "hesabdari-file-" + System.currentTimeMillis() + ".json";
+        }
+        String cleaned = raw.trim().replaceAll("[\\\\/:*?\"<>|]", "_");
+        if (cleaned.isEmpty() || ".".equals(cleaned) || "..".equals(cleaned)) {
+            return "hesabdari-file-" + System.currentTimeMillis();
+        }
+        return cleaned;
+    }
+
+    private String cleanMimeType(String rawMime, String safeName) {
+        if (rawMime != null && !rawMime.isEmpty()) {
+            int semi = rawMime.indexOf(';');
+            String trimmed = (semi > 0 ? rawMime.substring(0, semi) : rawMime).trim();
+            if (!trimmed.isEmpty()) return trimmed;
+        }
+        String lower = safeName.toLowerCase();
+        if (lower.endsWith(".json")) return "application/json";
+        if (lower.endsWith(".csv")) return "text/csv";
+        if (lower.endsWith(".pdf")) return "application/pdf";
+        if (lower.endsWith(".png")) return "image/png";
+        if (lower.endsWith(".jpg") || lower.endsWith(".jpeg")) return "image/jpeg";
+        if (lower.endsWith(".html")) return "text/html";
+        return "application/octet-stream";
+    }
+
     @SuppressLint({"SetJavaScriptEnabled", "AddJavascriptInterface"})
     private void configureWebView() {
         WebSettings ws = webView.getSettings();
@@ -226,13 +450,46 @@ public class MainActivity extends Activity {
         ws.setTextZoom(100);
         ws.setCacheMode(WebSettings.LOAD_DEFAULT);
         ws.setMixedContentMode(WebSettings.MIXED_CONTENT_NEVER_ALLOW);
-        ws.setUserAgentString(ws.getUserAgentString() + " NovinAshpazkhanehAPK/1.0.2");
+        ws.setUserAgentString(ws.getUserAgentString() + " HesabdariAPK/1.0.3");
 
         CookieManager cm = CookieManager.getInstance();
         cm.setAcceptCookie(true);
         cm.setAcceptThirdPartyCookies(webView, false);
 
         webView.addJavascriptInterface(new AndroidBridge(), "AndroidNative");
+
+        // Intercept EVERY WebView download (blob:, data:, http/https, <a download>) -> save into "حسابداری"
+        webView.setDownloadListener((url, userAgent, contentDisposition, mimetype, contentLength) -> {
+            if (url == null || url.isEmpty()) return;
+            final String guessedName = sanitizeFileName(URLUtil.guessFileName(url, contentDisposition, mimetype));
+            if (url.startsWith("data:")) {
+                bgExecutor.execute(() -> {
+                    boolean ok = saveDataUriToHesabdari(guessedName, url, mimetype);
+                    showSavedToastOnUi(guessedName, ok);
+                });
+                return;
+            }
+            if (url.startsWith("blob:")) {
+                String escapedUrl = url.replace("\\", "\\\\").replace("'", "\\'");
+                String escapedName = guessedName.replace("\\", "\\\\").replace("'", "\\'");
+                String escapedMime = (mimetype != null ? mimetype : "").replace("\\", "\\\\").replace("'", "\\'");
+                String js = "(function(){fetch('" + escapedUrl + "').then(function(r){return r.blob();}).then(function(b){" +
+                        "var fr=new FileReader();fr.onloadend=function(){" +
+                        "if(window.AndroidNative&&window.AndroidNative.saveBase64File){" +
+                        "var ok=window.AndroidNative.saveBase64File('" + escapedName + "',String(fr.result||''),b.type||'" + escapedMime + "');" +
+                        "if(typeof toast==='function')toast(ok?'فایل " + escapedName + " در پوشهٔ «حسابداری» گوشی ذخیره شد':'ذخیرهٔ فایل ممکن نشد',ok?'ok':'bad');" +
+                        "}};fr.readAsDataURL(b);}).catch(function(){});})();";
+                webView.evaluateJavascript(js, null);
+                return;
+            }
+            if (url.startsWith("http://") || url.startsWith("https://")) {
+                final String cookie = CookieManager.getInstance().getCookie(url);
+                bgExecutor.execute(() -> {
+                    boolean ok = downloadHttpUrlToHesabdari(url, userAgent, cookie, guessedName, mimetype);
+                    showSavedToastOnUi(guessedName, ok);
+                });
+            }
+        });
 
         webView.setWebViewClient(new WebViewClient() {
             @Override
@@ -298,6 +555,14 @@ public class MainActivity extends Activity {
 
         webView.setWebChromeClient(new WebChromeClient() {
             @Override
+            public Bitmap getDefaultVideoPoster() {
+                if (transparentPosterBitmap == null) {
+                    transparentPosterBitmap = Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888);
+                }
+                return transparentPosterBitmap;
+            }
+
+            @Override
             public void onPermissionRequest(final PermissionRequest request) {
                 runOnUiThread(() -> handleWebPermissionRequest(request));
             }
@@ -330,6 +595,77 @@ public class MainActivity extends Activity {
                 }
             }
         });
+    }
+
+    private void showSavedToastOnUi(String fileName, boolean ok) {
+        runOnUiThread(() -> Toast.makeText(
+                MainActivity.this,
+                ok
+                        ? "فایل " + fileName + " در پوشهٔ «حسابداری» گوشی ذخیره شد"
+                        : "ذخیرهٔ فایل ممکن نشد",
+                Toast.LENGTH_SHORT
+        ).show());
+    }
+
+    private boolean saveDataUriToHesabdari(String fallbackName, String dataUri, String fallbackMime) {
+        try {
+            int comma = dataUri.indexOf(',');
+            if (comma < 0) return false;
+            String meta = dataUri.substring(5, comma);
+            String payloadPart = dataUri.substring(comma + 1);
+            boolean isBase64 = meta.contains(";base64");
+            String mime = fallbackMime;
+            int semi = meta.indexOf(';');
+            String parsedMime = semi >= 0 ? meta.substring(0, semi) : meta;
+            if (!parsedMime.trim().isEmpty()) {
+                mime = parsedMime.trim();
+            }
+            byte[] bytes = isBase64
+                    ? Base64.decode(payloadPart, Base64.DEFAULT)
+                    : URLDecoder.decode(payloadPart, "UTF-8").getBytes(StandardCharsets.UTF_8);
+            return saveBytesToHesabdariFolder(fallbackName, bytes, mime);
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    private boolean downloadHttpUrlToHesabdari(
+            String urlStr,
+            String userAgent,
+            String cookie,
+            String fileName,
+            String mimeType
+    ) {
+        HttpURLConnection conn = null;
+        try {
+            URL url = new URL(urlStr);
+            conn = (HttpURLConnection) url.openConnection();
+            conn.setConnectTimeout(10000);
+            conn.setReadTimeout(20000);
+            if (userAgent != null && !userAgent.isEmpty()) {
+                conn.setRequestProperty("User-Agent", userAgent);
+            }
+            if (cookie != null && !cookie.isEmpty()) {
+                conn.setRequestProperty("Cookie", cookie);
+            }
+            int status = conn.getResponseCode();
+            if (status >= 200 && status < 300) {
+                ByteArrayOutputStream bos = new ByteArrayOutputStream();
+                try (InputStream in = conn.getInputStream()) {
+                    byte[] buf = new byte[8192];
+                    int r;
+                    while ((r = in.read(buf)) != -1) {
+                        bos.write(buf, 0, r);
+                    }
+                }
+                String finalMime = conn.getContentType() != null ? conn.getContentType() : mimeType;
+                return saveBytesToHesabdariFolder(fileName, bos.toByteArray(), finalMime);
+            }
+        } catch (Exception ignored) {
+        } finally {
+            if (conn != null) conn.disconnect();
+        }
+        return false;
     }
 
     private WebResourceResponse serveAppHtml() {
@@ -421,7 +757,7 @@ public class MainActivity extends Activity {
         });
     }
 
-    private void requestStartupPermissions() {
+    private void requestStartupPermissionsAndFolderSetup() {
         List<String> needed = new ArrayList<>();
         if (checkSelfPermission(Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
             needed.add(Manifest.permission.CAMERA);
@@ -431,13 +767,15 @@ public class MainActivity extends Activity {
                 needed.add(Manifest.permission.POST_NOTIFICATIONS);
             }
         }
-        if (Build.VERSION.SDK_INT <= 28) {
+        if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.Q) {
             if (checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
                 needed.add(Manifest.permission.WRITE_EXTERNAL_STORAGE);
             }
         }
         if (!needed.isEmpty()) {
-            requestPermissions(needed.toArray(new String[0]), REQ_PERMISSIONS);
+            requestPermissions(needed.toArray(new String[0]), REQ_STARTUP_PERMS);
+        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && !Environment.isExternalStorageManager()) {
+            promptAllFilesAccessDialog(false);
         }
     }
 
@@ -451,34 +789,61 @@ public class MainActivity extends Activity {
             }
         }
         if (!wantsVideo) {
-            request.grant(request.getResources());
+            try {
+                request.grant(request.getResources());
+            } catch (Throwable ignored) {
+            }
             return;
         }
         if (checkSelfPermission(Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
-            request.grant(new String[]{PermissionRequest.RESOURCE_VIDEO_CAPTURE});
+            try {
+                request.grant(request.getResources());
+            } catch (Throwable ignored) {
+            }
         } else {
+            if (pendingWebCameraRequest != null && pendingWebCameraRequest != request) {
+                try {
+                    pendingWebCameraRequest.deny();
+                } catch (Throwable ignored) {
+                }
+            }
             pendingWebCameraRequest = request;
-            requestPermissions(new String[]{Manifest.permission.CAMERA}, REQ_PERMISSIONS);
+            requestPermissions(new String[]{Manifest.permission.CAMERA}, REQ_WEB_CAMERA);
         }
     }
 
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (requestCode == REQ_PERMISSIONS && pendingWebCameraRequest != null) {
+        ensureHesabdariFolderCreated(true);
+
+        if ((requestCode == REQ_WEB_CAMERA || requestCode == REQ_STARTUP_PERMS) && pendingWebCameraRequest != null) {
             PermissionRequest req = pendingWebCameraRequest;
             pendingWebCameraRequest = null;
-            if (checkSelfPermission(Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
-                req.grant(new String[]{PermissionRequest.RESOURCE_VIDEO_CAPTURE});
-            } else {
-                req.deny();
+            try {
+                if (checkSelfPermission(Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
+                    req.grant(req.getResources());
+                } else {
+                    req.deny();
+                }
+            } catch (Throwable ignored) {
             }
+        }
+
+        if (requestCode == REQ_STARTUP_PERMS
+                && Build.VERSION.SDK_INT >= Build.VERSION_CODES.R
+                && !Environment.isExternalStorageManager()) {
+            promptAllFilesAccessDialog(false);
         }
     }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == REQ_MANAGE_STORAGE) {
+            ensureHesabdariFolderCreated(true);
+            return;
+        }
         if (requestCode == REQ_FILE_CHOOSER) {
             ValueCallback<Uri[]> cb = filePathCallback;
             filePathCallback = null;
@@ -582,48 +947,22 @@ public class MainActivity extends Activity {
 
         @JavascriptInterface
         public boolean saveFile(String fileName, String content, String mimeType) {
-            try {
-                String safeName = sanitizeFileName(fileName);
-                String cleanMime = cleanMimeType(mimeType, safeName);
-                byte[] bytes = (content != null ? content : "").getBytes(StandardCharsets.UTF_8);
+            byte[] bytes = (content != null ? content : "").getBytes(StandardCharsets.UTF_8);
+            return saveBytesToHesabdariFolder(fileName, bytes, mimeType);
+        }
 
-                if (Build.VERSION.SDK_INT >= 29) {
-                    ContentResolver resolver = getContentResolver();
-                    ContentValues values = new ContentValues();
-                    values.put(MediaStore.MediaColumns.DISPLAY_NAME, safeName);
-                    values.put(MediaStore.MediaColumns.MIME_TYPE, cleanMime);
-                    values.put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS);
-                    Uri uri = resolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, values);
-                    if (uri != null) {
-                        try (OutputStream os = resolver.openOutputStream(uri)) {
-                            if (os != null) {
-                                os.write(bytes);
-                                os.flush();
-                                return true;
-                            }
-                        }
-                    }
-                }
-
-                File downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
-                if (downloadsDir == null || (!downloadsDir.exists() && !downloadsDir.mkdirs())) {
-                    downloadsDir = getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS);
-                }
-                if (downloadsDir != null) {
-                    if (!downloadsDir.exists()) {
-                        //noinspection ResultOfMethodCallIgnored
-                        downloadsDir.mkdirs();
-                    }
-                    File outFile = new File(downloadsDir, safeName);
-                    try (FileOutputStream fos = new FileOutputStream(outFile)) {
-                        fos.write(bytes);
-                        fos.flush();
-                        return true;
-                    }
-                }
-            } catch (Exception ignored) {
+        @JavascriptInterface
+        public boolean saveBase64File(String fileName, String base64OrDataUrl, String mimeType) {
+            if (base64OrDataUrl == null || base64OrDataUrl.isEmpty()) return false;
+            if (base64OrDataUrl.startsWith("data:")) {
+                return saveDataUriToHesabdari(fileName, base64OrDataUrl, mimeType);
             }
-            return false;
+            try {
+                byte[] bytes = Base64.decode(base64OrDataUrl, Base64.DEFAULT);
+                return saveBytesToHesabdariFolder(fileName, bytes, mimeType);
+            } catch (Exception e) {
+                return false;
+            }
         }
 
         @JavascriptInterface
@@ -632,6 +971,9 @@ public class MainActivity extends Activity {
                 String safeName = sanitizeFileName(fileName);
                 String cleanMime = cleanMimeType(mimeType, safeName);
                 byte[] bytes = (content != null ? content : "").getBytes(StandardCharsets.UTF_8);
+
+                // Always save a permanent copy inside the "حسابداری" folder as well
+                saveBytesToHesabdariFolder(safeName, bytes, cleanMime);
 
                 File shareDir = new File(getCacheDir(), "shared");
                 if (!shareDir.exists()) {
@@ -648,7 +990,7 @@ public class MainActivity extends Activity {
                 Intent shareIntent = new Intent(Intent.ACTION_SEND);
                 shareIntent.setType(cleanMime);
                 shareIntent.putExtra(Intent.EXTRA_STREAM, contentUri);
-                shareIntent.putExtra(Intent.EXTRA_SUBJECT, "پشتیبان نوین آشپزخانه");
+                shareIntent.putExtra(Intent.EXTRA_SUBJECT, "پشتیبان حسابداری — نوین آشپزخانه");
                 shareIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
 
                 runOnUiThread(() -> {
@@ -668,29 +1010,12 @@ public class MainActivity extends Activity {
                     if (webView == null) return;
                     PrintManager pm = (PrintManager) getSystemService(Context.PRINT_SERVICE);
                     if (pm == null) return;
-                    String jobName = "NovinAshpazkhaneh-" + System.currentTimeMillis();
+                    String jobName = "Hesabdari-" + System.currentTimeMillis();
                     PrintDocumentAdapter adapter = webView.createPrintDocumentAdapter(jobName);
                     pm.print(jobName, adapter, new PrintAttributes.Builder().build());
                 } catch (Exception ignored) {
                 }
             });
-        }
-
-        private String sanitizeFileName(String raw) {
-            if (raw == null || raw.trim().isEmpty()) {
-                return "novin-ashpazkhaneh-backup.json";
-            }
-            return raw.replaceAll("[^a-zA-Z0-9._\\-\\u0600-\\u06FF]", "_");
-        }
-
-        private String cleanMimeType(String rawMime, String safeName) {
-            if (rawMime != null && !rawMime.isEmpty()) {
-                int semi = rawMime.indexOf(';');
-                return (semi > 0 ? rawMime.substring(0, semi) : rawMime).trim();
-            }
-            if (safeName.endsWith(".json")) return "application/json";
-            if (safeName.endsWith(".csv")) return "text/csv";
-            return "application/octet-stream";
         }
     }
 }

@@ -3,15 +3,15 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
-<meta name="theme-color" content="#0C2337">
+<meta name="theme-color" content="#081B2C">
 <meta name="color-scheme" content="light">
-<meta name="application-name" content="نوین آشپزخانه">
-<meta name="apple-mobile-web-app-title" content="نوین آشپزخانه">
+<meta name="application-name" content="حسابداری">
+<meta name="apple-mobile-web-app-title" content="حسابداری">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="description" content="نوین آشپزخانه — سامانه هوشمند حسابداری، صدور فاکتور، بارکدخوان فوق‌سریع و انبارداری با کارکرد کامل آفلاین و همگام‌سازی خودکار ابری.">
-<title>نوین آشپزخانه · سامانه حسابداری و انبار</title>
+<meta name="description" content="حسابداری — نرم‌افزار هوشمند حسابداری، صدور فاکتور، بارکدخوان فوق‌سریع و انبارداری فروشگاه نوین آشپزخانه با کارکرد کامل آفلاین و همگام‌سازی خودکار ابری.">
+<title>حسابداری · فروشگاه نوین آشپزخانه</title>
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="icon" href="/favicon.ico" sizes="any">
 <link rel="icon" type="image/svg+xml" href="/icons/logo.svg">
@@ -396,17 +396,14 @@ select.inp{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns
 .scan-mid{position:relative;z-index:2;flex:1;display:flex;align-items:center;justify-content:center;padding:8px;overflow:hidden}
 .stage{--x:9%;--y:21%;position:relative;width:min(92vw,520px);height:min(54vh,64vw);border-radius:var(--r2);
   overflow:hidden;background:#000;box-shadow:0 0 0 1px rgba(255,255,255,.2),0 16px 44px rgba(0,0,0,.6)}
-.stage video,.stage #qrHost{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
-#qrHost{background:#000}
-#qrHost video{position:absolute;inset:0;width:100%!important;height:100%!important;object-fit:cover;display:block}
-#qrHost canvas{width:100%!important;height:100%!important;object-fit:cover}
-#qrHost img{display:none!important}
-.stage .dim{position:absolute;background:rgba(6,9,13,.55)}
+.stage video{position:absolute;inset:0;z-index:1;width:100%;height:100%;object-fit:cover;display:block;background:#000}
+#qrHost{display:none!important;width:0;height:0;overflow:hidden;pointer-events:none}
+.stage .dim{position:absolute;z-index:2;pointer-events:none;background:rgba(6,9,13,.52)}
 .stage .dim.t{top:0;inset-inline:0;height:var(--y)}
 .stage .dim.b{bottom:0;inset-inline:0;height:var(--y)}
 .stage .dim.l{top:var(--y);bottom:var(--y);inset-inline-start:0;width:var(--x)}
 .stage .dim.r{top:var(--y);bottom:var(--y);inset-inline-end:0;width:var(--x)}
-.vf{position:absolute;top:var(--y);bottom:var(--y);inset-inline-start:var(--x);inset-inline-end:var(--x)}
+.vf{position:absolute;z-index:3;pointer-events:none;top:var(--y);bottom:var(--y);inset-inline-start:var(--x);inset-inline-end:var(--x)}
 .vf i{position:absolute;width:32px;height:32px;border:3px solid var(--brass);border-radius:4px}
 .vf i:nth-child(1){top:-2px;left:-2px;border-right:0;border-bottom:0}
 .vf i:nth-child(2){top:-2px;right:-2px;border-left:0;border-bottom:0}
@@ -528,17 +525,21 @@ select.inp{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns
   <div class="brand" data-act="nav" data-val="home" role="button" tabindex="0">
     <span class="seal" aria-hidden="true">
       <svg viewBox="0 0 128 128" fill="none">
-        <rect width="128" height="128" rx="28" fill="#0C2337" stroke="#DFB256" stroke-width="4"/>
-        <circle cx="64" cy="64" r="46" stroke="#DFB256" stroke-width="5"/>
-        <path d="M55 41.5a9 8.5 0 0 1 18 0" stroke="#DFB256" stroke-width="4.5" stroke-linecap="round"/>
-        <path d="M35 64c2-15.8 14.2-23.5 29-23.5S91 48.2 93 64H35Z" fill="#DFB256"/>
-        <path d="M42.5 61c1.8-9.8 8.6-15.6 17.5-17.2" stroke="#0C2337" stroke-width="3.2" stroke-linecap="round"/>
-        <rect x="31" y="66.5" width="66" height="4.8" rx="2.4" fill="#DFB256"/>
-        <rect x="35" y="74.5" width="58" height="4.2" rx="1.6" fill="#DFB256"/>
-        <rect x="35" y="82" width="58" height="4.2" rx="1.6" fill="#DFB256"/>
-        <rect x="35" y="89.5" width="58" height="4.2" rx="1.6" fill="#DFB256"/>
-        <circle cx="64" cy="69" r="11" fill="#0C2337" stroke="#DFB256" stroke-width="2.8"/>
-        <path d="M59 69.2l3.4 3.5 6.9-7" stroke="#DFB256" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/>
+        <rect width="128" height="128" rx="28" fill="#081B2C" stroke="#DFB256" stroke-width="4"/>
+        <path d="M24 36v52l28 5V41L24 36Z" stroke="#DFB256" stroke-width="4" stroke-linejoin="round"/>
+        <path d="M80 41v31M80 41l24-5v22" stroke="#DFB256" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M52 41l28 0" stroke="#DFB256" stroke-width="3.5" stroke-linecap="round"/>
+        <path d="M31 47l15 2.6M31 56l15 2.6M31 65l12 2.1M31 74l10 1.8" stroke="#DFB256" stroke-width="3.4" stroke-linecap="round"/>
+        <path d="M58 49l16-2.5M58 58l16-2.5" stroke="#DFB256" stroke-width="3.4" stroke-linecap="round"/>
+        <rect x="44" y="64" width="32" height="39" rx="5.5" fill="#081B2C" stroke="#DFB256" stroke-width="4"/>
+        <rect x="50" y="70" width="20" height="7" rx="1.8" fill="#DFB256"/>
+        <circle cx="52.5" cy="84" r="2.2" fill="#DFB256"/><circle cx="60" cy="84" r="2.2" fill="#DFB256"/><circle cx="67.5" cy="84" r="2.2" fill="#DFB256"/>
+        <circle cx="52.5" cy="90.5" r="2.2" fill="#DFB256"/><circle cx="60" cy="90.5" r="2.2" fill="#DFB256"/><circle cx="67.5" cy="90.5" r="2.2" fill="#DFB256"/>
+        <circle cx="52.5" cy="97" r="2.2" fill="#DFB256"/><circle cx="60" cy="97" r="2.2" fill="#DFB256"/><rect x="65.3" y="94.5" width="4.4" height="4.8" rx="1.2" fill="#DFB256"/>
+        <rect x="82" y="68" width="8.5" height="26" rx="2" fill="#DFB256"/>
+        <rect x="94.5" y="54" width="8.5" height="40" rx="2" fill="#DFB256"/>
+        <circle cx="95" cy="36" r="12" fill="#DFB256"/>
+        <path d="M89.8 36.2l3.5 3.6 7.2-7.4" stroke="#081B2C" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/>
       </svg>
     </span>
     <span><b id="shopName">نوین آشپزخانه</b>
@@ -624,19 +625,23 @@ select.inp{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns
   <div class="perm-box">
     <div class="perm-top">
       <svg class="p-emblem" viewBox="0 0 128 128" fill="none">
-        <rect width="128" height="128" rx="28" fill="#0C2337" stroke="#DFB256" stroke-width="4"/>
-        <circle cx="64" cy="64" r="46" stroke="#DFB256" stroke-width="5"/>
-        <path d="M55 41.5a9 8.5 0 0 1 18 0" stroke="#DFB256" stroke-width="4.5" stroke-linecap="round"/>
-        <path d="M35 64c2-15.8 14.2-23.5 29-23.5S91 48.2 93 64H35Z" fill="#DFB256"/>
-        <path d="M42.5 61c1.8-9.8 8.6-15.6 17.5-17.2" stroke="#0C2337" stroke-width="3.2" stroke-linecap="round"/>
-        <rect x="31" y="66.5" width="66" height="4.8" rx="2.4" fill="#DFB256"/>
-        <rect x="35" y="74.5" width="58" height="4.2" rx="1.6" fill="#DFB256"/>
-        <rect x="35" y="82" width="58" height="4.2" rx="1.6" fill="#DFB256"/>
-        <rect x="35" y="89.5" width="58" height="4.2" rx="1.6" fill="#DFB256"/>
-        <circle cx="64" cy="69" r="11" fill="#0C2337" stroke="#DFB256" stroke-width="2.8"/>
-        <path d="M59 69.2l3.4 3.5 6.9-7" stroke="#DFB256" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/>
+        <rect width="128" height="128" rx="28" fill="#081B2C" stroke="#DFB256" stroke-width="4"/>
+        <path d="M24 36v52l28 5V41L24 36Z" stroke="#DFB256" stroke-width="4" stroke-linejoin="round"/>
+        <path d="M80 41v31M80 41l24-5v22" stroke="#DFB256" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M52 41l28 0" stroke="#DFB256" stroke-width="3.5" stroke-linecap="round"/>
+        <path d="M31 47l15 2.6M31 56l15 2.6M31 65l12 2.1M31 74l10 1.8" stroke="#DFB256" stroke-width="3.4" stroke-linecap="round"/>
+        <path d="M58 49l16-2.5M58 58l16-2.5" stroke="#DFB256" stroke-width="3.4" stroke-linecap="round"/>
+        <rect x="44" y="64" width="32" height="39" rx="5.5" fill="#081B2C" stroke="#DFB256" stroke-width="4"/>
+        <rect x="50" y="70" width="20" height="7" rx="1.8" fill="#DFB256"/>
+        <circle cx="52.5" cy="84" r="2.2" fill="#DFB256"/><circle cx="60" cy="84" r="2.2" fill="#DFB256"/><circle cx="67.5" cy="84" r="2.2" fill="#DFB256"/>
+        <circle cx="52.5" cy="90.5" r="2.2" fill="#DFB256"/><circle cx="60" cy="90.5" r="2.2" fill="#DFB256"/><circle cx="67.5" cy="90.5" r="2.2" fill="#DFB256"/>
+        <circle cx="52.5" cy="97" r="2.2" fill="#DFB256"/><circle cx="60" cy="97" r="2.2" fill="#DFB256"/><rect x="65.3" y="94.5" width="4.4" height="4.8" rx="1.2" fill="#DFB256"/>
+        <rect x="82" y="68" width="8.5" height="26" rx="2" fill="#DFB256"/>
+        <rect x="94.5" y="54" width="8.5" height="40" rx="2" fill="#DFB256"/>
+        <circle cx="95" cy="36" r="12" fill="#DFB256"/>
+        <path d="M89.8 36.2l3.5 3.6 7.2-7.4" stroke="#081B2C" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/>
       </svg>
-      <h2 id="permGateTitle">آماده‌سازی وب‌اپ نوین آشپزخانه</h2>
+      <h2 id="permGateTitle">آماده‌سازی برنامهٔ حسابداری</h2>
       <p>اعطای دسترسی‌ها برای باز شدن آنی دوربین و کارکرد ۱۰۰٪ آفلاین</p>
     </div>
     <div class="perm-list">
@@ -2410,7 +2415,7 @@ function download(name,text,mime){
   try{
     if(window.AndroidNative&&typeof window.AndroidNative.saveFile==='function'){
       const ok=window.AndroidNative.saveFile(String(name),String(text),String(mime||'text/plain;charset=utf-8'));
-      if(ok){toast('فایل '+name+' در پوشهٔ Downloads گوشی ذخیره شد','ok');return;}
+      if(ok){toast('فایل '+name+' در پوشهٔ «حسابداری» گوشی ذخیره شد','ok');return;}
     }
     const b=new Blob([text],{type:mime||'text/csv;charset=utf-8'});
     const a=document.createElement('a');
@@ -2475,18 +2480,18 @@ function buildBackupPayload(){
 }
 function exportBackupJSON(){
   const payload=buildBackupPayload();
-  const fname='novin-ashpazkhaneh-backup-'+todayISO()+'.json';
+  const fname='hesabdari-backup-'+todayISO()+'.json';
   download(fname,JSON.stringify(payload,null,2),'application/json;charset=utf-8');
   return payload;
 }
 async function shareBackupJSON(){
   try{
     const payload=buildBackupPayload();
-    const fname='novin-ashpazkhaneh-backup-'+todayISO()+'.json';
+    const fname='hesabdari-backup-'+todayISO()+'.json';
     const text=JSON.stringify(payload,null,2);
     if(window.AndroidNative&&typeof window.AndroidNative.shareFile==='function'){
       const ok=window.AndroidNative.shareFile(fname,text,'application/json');
-      if(ok){toast('پنجرهٔ اشتراک‌گذاری پشتیبان باز شد','ok');return;}
+      if(ok){toast('نسخه‌ای در پوشهٔ «حسابداری» ذخیره و پنجرهٔ اشتراک‌گذاری باز شد','ok');return;}
     }
     if(typeof File==='function'&&navigator.canShare&&navigator.share){
       const file=new File([text],fname,{type:'application/json'});
@@ -2546,7 +2551,7 @@ function restoreJSON(file){
 }
 
 /* ===== چاپ ===== */
-const PRINT_LOGO_SVG='<svg class="p-logo" viewBox="0 0 128 128" fill="none"><rect width="128" height="128" rx="26" fill="#0C2337"/><circle cx="64" cy="64" r="46" stroke="#DFB256" stroke-width="5"/><path d="M55 41.5a9 8.5 0 0 1 18 0" stroke="#DFB256" stroke-width="4.5" stroke-linecap="round"/><path d="M35 64c2-15.8 14.2-23.5 29-23.5S91 48.2 93 64H35Z" fill="#DFB256"/><path d="M42.5 61c1.8-9.8 8.6-15.6 17.5-17.2" stroke="#0C2337" stroke-width="3.2" stroke-linecap="round"/><rect x="31" y="66.5" width="66" height="4.8" rx="2.4" fill="#DFB256"/><rect x="35" y="74.5" width="58" height="4.2" rx="1.6" fill="#DFB256"/><rect x="35" y="82" width="58" height="4.2" rx="1.6" fill="#DFB256"/><rect x="35" y="89.5" width="58" height="4.2" rx="1.6" fill="#DFB256"/><circle cx="64" cy="69" r="11" fill="#0C2337" stroke="#DFB256" stroke-width="2.8"/><path d="M59 69.2l3.4 3.5 6.9-7" stroke="#DFB256" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+const PRINT_LOGO_SVG='<svg class="p-logo" viewBox="0 0 128 128" fill="none"><rect width="128" height="128" rx="26" fill="#081B2C"/><path d="M24 36v52l28 5V41L24 36Z" stroke="#DFB256" stroke-width="4" stroke-linejoin="round"/><path d="M80 41v31M80 41l24-5v22" stroke="#DFB256" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/><path d="M52 41l28 0" stroke="#DFB256" stroke-width="3.5" stroke-linecap="round"/><path d="M31 47l15 2.6M31 56l15 2.6M31 65l12 2.1M31 74l10 1.8" stroke="#DFB256" stroke-width="3.4" stroke-linecap="round"/><path d="M58 49l16-2.5M58 58l16-2.5" stroke="#DFB256" stroke-width="3.4" stroke-linecap="round"/><rect x="44" y="64" width="32" height="39" rx="5.5" fill="#081B2C" stroke="#DFB256" stroke-width="4"/><rect x="50" y="70" width="20" height="7" rx="1.8" fill="#DFB256"/><circle cx="52.5" cy="84" r="2.2" fill="#DFB256"/><circle cx="60" cy="84" r="2.2" fill="#DFB256"/><circle cx="67.5" cy="84" r="2.2" fill="#DFB256"/><circle cx="52.5" cy="90.5" r="2.2" fill="#DFB256"/><circle cx="60" cy="90.5" r="2.2" fill="#DFB256"/><circle cx="67.5" cy="90.5" r="2.2" fill="#DFB256"/><circle cx="52.5" cy="97" r="2.2" fill="#DFB256"/><circle cx="60" cy="97" r="2.2" fill="#DFB256"/><rect x="65.3" y="94.5" width="4.4" height="4.8" rx="1.2" fill="#DFB256"/><rect x="82" y="68" width="8.5" height="26" rx="2" fill="#DFB256"/><rect x="94.5" y="54" width="8.5" height="40" rx="2" fill="#DFB256"/><circle cx="95" cy="36" r="12" fill="#DFB256"/><path d="M89.8 36.2l3.5 3.6 7.2-7.4" stroke="#081B2C" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 function ensurePage(){
   let s=$('#pageStyle');
   if(!s){s=document.createElement('style');s.id='pageStyle';document.head.appendChild(s);}
@@ -2586,17 +2591,45 @@ function printLabel(id){
     '<div style="font-size:8px;letter-spacing:.1em">'+esc(shopTitle)+' · '+esc(S.settings.phone||'')+'</div></div></div>');
 }
 
-/* ===== اسکن بارکد فوق‌سریع (Warm Stream + GPU Direct BarcodeDetector) ===== */
+/* ===== اسکن بارکد فوق‌سریع و ضدصفحه‌سیاه (تک‌استریم زنده + موتور ترکیبی ZXing و BarcodeDetector) ===== */
 const CAM_REAR_KEY='novin.camRearId',CAM_FRONT_KEY='novin.camFrontId',PERM_DONE_KEY='novin.permDone';
-let cam=null,camFrontState=false,camIdleT=null,qr=null,scanMode='lookup',fillTarget=null,lastCode='',lastAt=0,torchOn=false,front=false,loop=null,detector=null;
+let cam=null,camFrontState=false,camIdleT=null,camWatchT=null,qr=null,zxingDec=null,nativeDetBroken=false;
+let scanMode='lookup',fillTarget=null,lastCode='',lastAt=0,torchOn=false,front=false,loop=null,detector=null;
+let scanRoiCanvas=null,scanRoiCtx=null,scanFullCanvas=null,scanFullCtx=null;
+
 function initDetectorOnce(){
+  if(nativeDetBroken)return null;
   if(detector)return detector;
   const DC=window.BarcodeDetector;
   if(!DC)return null;
   try{
     detector=new DC({formats:['ean_13','ean_8','upc_a','upc_e','code_39','code_128','itf','codabar','qr_code']});
-  }catch(e){detector=null;}
+    if(typeof DC.getSupportedFormats==='function'){
+      DC.getSupportedFormats().then(fmts=>{
+        if(!Array.isArray(fmts)||!fmts.length||(fmts.indexOf('ean_13')===-1&&fmts.indexOf('code_128')===-1)){
+          nativeDetBroken=true;detector=null;
+        }
+      }).catch(()=>{nativeDetBroken=true;detector=null;});
+    }
+  }catch(e){nativeDetBroken=true;detector=null;}
   return detector;
+}
+function initZxingDecoderOnce(){
+  if(zxingDec)return zxingDec;
+  if(typeof Html5Qrcode==='undefined')return null;
+  try{
+    const formats=typeof Html5QrcodeSupportedFormats!=='undefined'?
+      [Html5QrcodeSupportedFormats.EAN_13,Html5QrcodeSupportedFormats.EAN_8,Html5QrcodeSupportedFormats.UPC_A,
+       Html5QrcodeSupportedFormats.UPC_E,Html5QrcodeSupportedFormats.CODE_128,Html5QrcodeSupportedFormats.CODE_39,
+       Html5QrcodeSupportedFormats.ITF,Html5QrcodeSupportedFormats.CODABAR,Html5QrcodeSupportedFormats.QR_CODE].filter(Boolean):undefined;
+    const opts={verbose:false,useBarCodeDetectorIfSupported:false};
+    if(formats&&formats.length)opts.formatsToSupport=formats;
+    const inst=new Html5Qrcode('qrHost',opts);
+    if(inst&&inst.qrcode&&typeof inst.qrcode.getDecoder==='function'){
+      zxingDec=inst.qrcode.getDecoder();
+    }
+  }catch(e){zxingDec=null;}
+  return zxingDec;
 }
 async function cacheBestCameras(){
   if(!navigator.mediaDevices||!navigator.mediaDevices.enumerateDevices)return;
@@ -2605,26 +2638,45 @@ async function cacheBestCameras(){
     if(!devs.length)return;
     const rearList=devs.filter(d=>/back|rear|environment/i.test(d.label||''));
     const frontList=devs.filter(d=>/front|user|selfie/i.test(d.label||''));
-    // ترجیح لنز اصلی واید عقب و پرهیز از اولتراواید / ماکرو / تله در گوشی‌های چنددوربینه اندروید
-    const bestRear=rearList.find(d=>!/ultra|wide\s*angle|0\.5|macro|tele|depth/i.test(d.label||''))||rearList[0]||devs[devs.length-1];
-    const bestFront=frontList[0]||devs[0];
+    // فقط زمانی لنز عقب را ذخیره کن که برچسب واقعی لنز اصلی عقب مشخص باشد (جلوگیری از انتخاب سنسور عمق/ماکرو سیاه در گوشی‌های چنددوربینه)
+    const primaryRear=rearList.find(d=>/camera2?\s*0\b/i.test(d.label||'')&&!/ultra|macro|tele|depth|tof|mono/i.test(d.label||''))
+      ||rearList.find(d=>!/ultra|wide\s*angle|0\.5|macro|tele|depth|tof|mono|ir/i.test(d.label||''))
+      ||rearList[0]||null;
+    const primaryFront=frontList[0]||null;
     try{
-      if(bestRear&&bestRear.deviceId)localStorage.setItem(CAM_REAR_KEY,bestRear.deviceId);
-      if(bestFront&&bestFront.deviceId)localStorage.setItem(CAM_FRONT_KEY,bestFront.deviceId);
+      if(primaryRear&&primaryRear.deviceId)localStorage.setItem(CAM_REAR_KEY,primaryRear.deviceId);
+      if(primaryFront&&primaryFront.deviceId)localStorage.setItem(CAM_FRONT_KEY,primaryFront.deviceId);
     }catch(e){}
   }catch(e){}
 }
-function buildFastVideoConstraints(){
+function buildFastVideoConstraints(skipSavedDevice){
   let prefId='';
-  try{prefId=localStorage.getItem(front?CAM_FRONT_KEY:CAM_REAR_KEY)||'';}catch(e){}
+  if(!skipSavedDevice){
+    try{prefId=localStorage.getItem(front?CAM_FRONT_KEY:CAM_REAR_KEY)||'';}catch(e){}
+  }
   const base={
     width:{ideal:1280},
     height:{ideal:720},
-    frameRate:{ideal:30,max:60}
+    facingMode:front?'user':{ideal:'environment'}
   };
   if(prefId)base.deviceId={ideal:prefId};
-  base.facingMode=front?'user':{ideal:'environment'};
   return base;
+}
+async function acquireCameraStream(skipSavedDevice){
+  const attempts=[
+    buildFastVideoConstraints(skipSavedDevice),
+    {width:{ideal:1280},height:{ideal:720},facingMode:front?'user':'environment'},
+    {facingMode:front?'user':'environment'},
+    true
+  ];
+  let lastErr=null;
+  for(let i=0;i<attempts.length;i++){
+    try{
+      const s=await navigator.mediaDevices.getUserMedia({audio:false,video:attempts[i]});
+      if(s)return s;
+    }catch(err){lastErr=err;}
+  }
+  throw lastErr||new Error('CameraUnavailable');
 }
 function applyFastTrackFocus(stream){
   try{
@@ -2641,7 +2693,7 @@ function applyFastTrackFocus(stream){
 function isCamAlive(stream){
   if(!stream||!stream.getVideoTracks)return false;
   const tr=stream.getVideoTracks()[0];
-  return !!(tr&&tr.readyState==='live');
+  return !!(tr&&tr.readyState==='live'&&!tr.muted);
 }
 function openScan(mode){
   closeSearch();
@@ -2655,7 +2707,7 @@ function openScan(mode){
   $('#manualCode').value='';
   $('#scan').hidden=false;
   document.documentElement.style.overflow='hidden';
-  startScan();
+  startScan(false);
 }
 function closeScan(){
   pauseScan();
@@ -2664,18 +2716,13 @@ function closeScan(){
   const i=$('#manualCode');if(i)i.value='';
 }
 function pauseScan(){
+  if(camWatchT){clearTimeout(camWatchT);camWatchT=null;}
   if(loop){cancelAnimationFrame(loop);loop=null;}
   if(torchOn){
     try{const tr=cam&&cam.getVideoTracks()[0];if(tr&&tr.applyConstraints)tr.applyConstraints({advanced:[{torch:false}]}).catch(()=>{});}catch(e){}
     torchOn=false;
   }
   try{$('#torchBtn').classList.remove('on');}catch(e){}
-  if(qr){
-    try{const p=qr.stop();if(p&&p.then)p.then(()=>{try{qr.clear();}catch(e){}}).catch(()=>{});}catch(e){}
-    qr=null;
-    const host=$('#qrHost');if(host)host.style.display='none';
-  }
-  // نگه‌داشتن گرم سنسور دوربین برای ۴۵ ثانیه تا اسکن‌های پشت‌سرهم در کسری از ثانیه (~۲۰ms) باز شوند
   if(isCamAlive(cam)){
     try{cam.getVideoTracks().forEach(t=>{t.enabled=false;});}catch(e){}
     if(camIdleT)clearTimeout(camIdleT);
@@ -2685,19 +2732,30 @@ function pauseScan(){
   }
 }
 function stopScan(){
+  if(camWatchT){clearTimeout(camWatchT);camWatchT=null;}
   if(camIdleT){clearTimeout(camIdleT);camIdleT=null;}
   if(loop){cancelAnimationFrame(loop);loop=null;}
   if(cam){try{cam.getTracks().forEach(t=>t.stop());}catch(e){}cam=null;}
-  const v=$('#camVideo');if(v){try{v.srcObject=null;}catch(e){}v.style.display='none';}
-  const host=$('#qrHost');if(host){host.style.display='none';}
-  if(qr){
-    try{const p=qr.stop();if(p&&p.then)p.then(()=>{try{qr.clear();}catch(e){}}).catch(()=>{});}catch(e){}
-    qr=null;
-  }
+  const v=$('#camVideo');if(v){try{v.srcObject=null;}catch(e){}}
   try{$('#torchBtn').classList.remove('on');}catch(e){}
   torchOn=false;
 }
-async function startScan(){
+async function attachStreamToVideo(v,stream){
+  v.style.display='block';
+  v.style.visibility='visible';
+  v.style.opacity='1';
+  v.muted=true;
+  v.autoplay=true;
+  v.playsInline=true;
+  v.setAttribute('playsinline','');
+  v.setAttribute('webkit-playsinline','');
+  v.setAttribute('muted','');
+  v.setAttribute('autoplay','');
+  if(v.srcObject!==stream)v.srcObject=stream;
+  try{await v.play();}catch(e){}
+}
+async function startScan(skipSavedDevice){
+  if(camWatchT){clearTimeout(camWatchT);camWatchT=null;}
   if(camIdleT){clearTimeout(camIdleT);camIdleT=null;}
   if(loop){cancelAnimationFrame(loop);loop=null;}
   const info=$('#scanInfo'),sub=$('#scanSub');
@@ -2707,16 +2765,16 @@ async function startScan(){
     return;
   }
   const v=$('#camVideo');
-  // مسیر فوق‌سریع (Warm Resume): اگر استریم همان لنز آماده است، بلافاصله در <25ms تصویر زنده می‌شود
-  if(isCamAlive(cam)&&camFrontState===front){
+  const host=$('#qrHost');if(host)host.style.display='none';
+  initDetectorOnce();
+  initZxingDecoderOnce();
+
+  if(!skipSavedDevice&&isCamAlive(cam)&&camFrontState===front){
     try{
       cam.getVideoTracks().forEach(t=>{t.enabled=true;});
-      v.style.display='block';
-      if(v.srcObject!==cam)v.srcObject=cam;
-      v.setAttribute('playsinline','');
-      try{await v.play();}catch(e){}
-      sub.textContent='آماده — بارکد را نشانه بروید';
-      runNative(v);
+      await attachStreamToVideo(v,cam);
+      sub.textContent='آماده — بارکد را داخل کادر بگیرید';
+      runHybridScanner(v);
       return;
     }catch(e){
       stopScan();
@@ -2725,80 +2783,117 @@ async function startScan(){
     stopScan();
   }
   try{
-    initDetectorOnce();
-    cam=await navigator.mediaDevices.getUserMedia({audio:false,video:buildFastVideoConstraints()});
+    sub.textContent='در حال روشن کردن دوربین…';
+    cam=await acquireCameraStream(!!skipSavedDevice);
     camFrontState=front;
     applyFastTrackFocus(cam);
     cacheBestCameras();
     try{localStorage.setItem(PERM_DONE_KEY,'1');}catch(e){}
-    v.style.display='block';
-    v.srcObject=cam;
-    v.setAttribute('playsinline','');
-    try{await v.play();}catch(e){}
-    sub.textContent='آماده — بارکد را نشانه بروید';
-    runNative(v);
+    await attachStreamToVideo(v,cam);
+    sub.textContent='آماده — بارکد را داخل کادر بگیرید';
+    runHybridScanner(v);
+    // اگر به دلیل شناسهٔ لنز کمکی فریم تصویر تا ۱.۸ ثانیه نیامد، بدون شناسهٔ ذخیره‌شده با لنز استاندارد بازگشایی کن
+    if(!skipSavedDevice){
+      camWatchT=setTimeout(()=>{
+        camWatchT=null;
+        if(!$('#scan').hidden&&cam&&(!v.videoWidth||v.readyState<2)){
+          try{localStorage.removeItem(front?CAM_FRONT_KEY:CAM_REAR_KEY);}catch(e){}
+          stopScan();
+          startScan(true);
+        }
+      },1800);
+    }
   }catch(e){
     cam=null;
     const m=String(e&&e.message||e);
-    let msg='اجازهٔ دوربین داده نشد. از تنظیمات مرورگر مجوز را فعال کنید یا <b>شماره را دستی وارد کنید</b>.';
+    let msg='اجازهٔ دوربین داده نشد. دسترسی دوربین برنامه را فعال کنید یا <b>شماره را دستی وارد کنید</b>.';
     if(/NotReadable|Could not start|TrackStart/i.test(m))msg='دوربین در دسترس برنامهٔ دیگری است؛ آن را ببندید و دوباره تلاش کنید، یا <b>دستی</b> وارد کنید.';
-    if(/https|secure|insecure/i.test(m)||location.protocol==='file:')msg='دوربین فقط روی آدرس امن (https یا localhost) کار می‌کند. تا آن موقع از <b>ورود دستی</b> استفاده کنید.';
+    if(/https|secure|insecure/i.test(m)||location.protocol==='file:')msg='دوربین فقط روی آدرس امن کار می‌کند. از <b>ورود دستی</b> استفاده کنید.';
     sub.textContent='دوربین در دسترس نیست';
     info.innerHTML=msg;
   }
 }
-function runNative(video){
-  const det=initDetectorOnce();
-  if(!det){useLibrary();return;}
-  let fallbackCanvas=null,fallbackCtx=null,useCanvasFallback=false,busy=false,lastTick=0;
+function decodeCanvasWithZxing(canvas){
+  const dec=initZxingDecoderOnce();
+  if(!dec||!canvas||!canvas.width||!canvas.height)return '';
+  try{
+    const res=dec.decode(canvas);
+    if(res&&res.text)return String(res.text).trim();
+  }catch(e){}
+  return '';
+}
+function boostContrastGrayscale(ctx,w,h){
+  try{
+    const img=ctx.getImageData(0,0,w,h),d=img.data;
+    let minL=255,maxL=0;
+    for(let i=0;i<d.length;i+=16){
+      const l=(d[i]*77+d[i+1]*150+d[i+2]*29)>>8;
+      if(l<minL)minL=l;
+      if(l>maxL)maxL=l;
+    }
+    const span=Math.max(24,maxL-minL),scale=255/span;
+    for(let i=0;i<d.length;i+=4){
+      let v=(((d[i]*77+d[i+1]*150+d[i+2]*29)>>8)-minL)*scale;
+      v=v<0?0:(v>255?255:v|0);
+      d[i]=d[i+1]=d[i+2]=v;
+    }
+    ctx.putImageData(img,0,0);
+  }catch(e){}
+}
+function decodeVideoFrameWithZxing(video,step){
+  const vw=video.videoWidth,vh=video.videoHeight;
+  if(!vw||!vh)return '';
+  if(!scanRoiCanvas){
+    scanRoiCanvas=document.createElement('canvas');
+    scanRoiCtx=scanRoiCanvas.getContext('2d',{willReadFrequently:true});
+  }
+  // ۱. برش نوار مرکزی بارکد با وضوح بالا (مطابق کادر نشانه‌گیری) برای خواندن فوری بارکدهای میله‌ای ریز
+  const sx=Math.round(vw*0.06),sy=Math.round(vh*0.20),sw=Math.max(64,Math.round(vw*0.88)),sh=Math.max(48,Math.round(vh*0.60));
+  const rw=Math.min(760,sw),rh=Math.max(120,Math.round(sh*(rw/sw)));
+  if(scanRoiCanvas.width!==rw||scanRoiCanvas.height!==rh){scanRoiCanvas.width=rw;scanRoiCanvas.height=rh;}
+  scanRoiCtx.drawImage(video,sx,sy,sw,sh,0,0,rw,rh);
+  if(step%3===2)boostContrastGrayscale(scanRoiCtx,rw,rh);
+  let found=decodeCanvasWithZxing(scanRoiCanvas);
+  if(found)return found;
+
+  // ۲. بررسی کل کادر تصویر در گام‌های متناوب برای QR و بارکدهای خارج از مرکز
+  if(step%2===1){
+    if(!scanFullCanvas){
+      scanFullCanvas=document.createElement('canvas');
+      scanFullCtx=scanFullCanvas.getContext('2d',{willReadFrequently:true});
+    }
+    const fw=Math.min(640,vw),fh=Math.max(160,Math.round(vh*(fw/vw)));
+    if(scanFullCanvas.width!==fw||scanFullCanvas.height!==fh){scanFullCanvas.width=fw;scanFullCanvas.height=fh;}
+    scanFullCtx.drawImage(video,0,0,vw,vh,0,0,fw,fh);
+    found=decodeCanvasWithZxing(scanFullCanvas);
+    if(found)return found;
+  }
+  return '';
+}
+function runHybridScanner(video){
+  let busy=false,lastSwTick=0,lastHwTick=0,swStep=0;
   const tick=(ts)=>{
     if($('#scan').hidden||!cam){loop=null;return;}
     if(!video.videoWidth||video.readyState<2){loop=requestAnimationFrame(tick);return;}
-    if(!busy&&(ts-lastTick>=32)){
-      busy=true;lastTick=ts;
-      const detectPromise=(!useCanvasFallback)
-        ?det.detect(video).catch(()=>{
-            useCanvasFallback=true;
-            fallbackCanvas=document.createElement('canvas');
-            fallbackCtx=fallbackCanvas.getContext('2d',{willReadFrequently:true});
-            return [];
-          })
-        :(()=>{
-            const w=540,h=Math.round(video.videoHeight/video.videoWidth*w)||360;
-            if(fallbackCanvas.width!==w||fallbackCanvas.height!==h){fallbackCanvas.width=w;fallbackCanvas.height=h;}
-            fallbackCtx.drawImage(video,0,0,w,h);
-            return det.detect(fallbackCanvas).catch(()=>[]);
-          })();
-      detectPromise.then(rs=>{
+    // الف) موتور نرم‌افزاری آفلاین ZXing مستقیم روی فریم‌های زندهٔ camVideo (تضمین کارکرد ۱۰۰٪ روی Android WebView)
+    if((ts-lastSwTick)>=78){
+      lastSwTick=ts;
+      const code=decodeVideoFrameWithZxing(video,swStep++);
+      if(code){onCode(code);if($('#scan').hidden||!cam){loop=null;return;}}
+    }
+    // ب) شتاب‌دهندهٔ سخت‌افزاری BarcodeDetector در صورت پشتیبانی واقعی مرورگر
+    const det=initDetectorOnce();
+    if(det&&!busy&&(ts-lastHwTick)>=95){
+      busy=true;lastHwTick=ts;
+      det.detect(video).then(rs=>{
         if(rs&&rs.length&&rs[0].rawValue)onCode(rs[0].rawValue);
-      }).then(()=>{busy=false;},()=>{busy=false;});
+      }).catch(()=>{
+        nativeDetBroken=true;detector=null;
+      }).then(()=>{busy=false;});
     }
     loop=requestAnimationFrame(tick);
   };
   loop=requestAnimationFrame(tick);
-}
-function useLibrary(){
-  if(typeof Html5Qrcode==='undefined')return;
-  stopScan();
-  const host=$('#qrHost');
-  host.style.display='block';
-  host.innerHTML='';
-  const w=host.clientWidth||360;
-  let prefId='';
-  try{prefId=localStorage.getItem(front?CAM_FRONT_KEY:CAM_REAR_KEY)||'';}catch(e){}
-  const camSpec=prefId?prefId:(front?{facingMode:'user'}:{facingMode:'environment'});
-  const formats=typeof Html5QrcodeSupportedFormats!=='undefined'?
-    [Html5QrcodeSupportedFormats.EAN_13,Html5QrcodeSupportedFormats.EAN_8,Html5QrcodeSupportedFormats.UPC_A,
-     Html5QrcodeSupportedFormats.UPC_E,Html5QrcodeSupportedFormats.CODE_128,Html5QrcodeSupportedFormats.CODE_39,
-     Html5QrcodeSupportedFormats.ITF,Html5QrcodeSupportedFormats.CODABAR,Html5QrcodeSupportedFormats.QR_CODE].filter(Boolean):undefined;
-  try{
-    qr=new Html5Qrcode('qrHost',Object.assign({verbose:false,disableFlip:false},formats?{formatsToSupport:formats}:{}));
-    qr.start(camSpec,
-      {fps:22,qrbox:function(){return {width:w,height:Math.round(w*0.7)};},disableFlip:false},
-      onCode,function(){});
-  }catch(e){
-    $('#scanSub').textContent='موتور پشتیبان هم در دسترس نیست';
-  }
 }
 function onCode(text){
   const now=Date.now();
@@ -2846,8 +2941,7 @@ function createFromScan(code){
 }
 async function toggleTorch(){
   const v=$('#camVideo');
-  const vid=v&&v.style.display!=='none'&&v.srcObject?v:($('#qrHost video')||null);
-  const track=vid&&vid.srcObject?vid.srcObject.getVideoTracks()[0]:null;
+  const track=(cam&&cam.getVideoTracks?cam.getVideoTracks()[0]:null)||(v&&v.srcObject&&v.srcObject.getVideoTracks?v.srcObject.getVideoTracks()[0]:null);
   if(!track){toast('این دوربین نور ندارد','bad');return;}
   try{
     const caps=track.getCapabilities?track.getCapabilities():{};
@@ -2860,7 +2954,7 @@ async function toggleTorch(){
 }
 async function switchCam(){
   front=!front;$('#scanSub').textContent='در حال تعویض دوربین…';
-  stopScan();await new Promise(r=>setTimeout(r,80));startScan();
+  stopScan();await new Promise(r=>setTimeout(r,80));startScan(false);
 }
 
 /* ===== دریافت دسترسی‌ها در بدو ورود، نصب وب‌اپ اندروید و کش آفلاین ===== */
@@ -3132,10 +3226,10 @@ document.addEventListener('click',function(e){
     case 'rtab':ui.rtab=v;go('reports');break;
     case 'rptTab':ui.rtab='sales';go('reports');break;
     case 'rf':ui.rf=v;render();break;
-    case 'csvExport':download('report-'+ui.rtab+'-'+todayISO()+'.csv',csv(reportCSV()));break;
-    case 'csvProducts':download('novin-products-'+todayISO()+'.csv',csv([['نام','بارکد','دسته','واحد','خرید','فروش','موجودی','حد هشدار']]
+    case 'csvExport':download('hesabdari-report-'+ui.rtab+'-'+todayISO()+'.csv',csv(reportCSV()));break;
+    case 'csvProducts':download('hesabdari-products-'+todayISO()+'.csv',csv([['نام','بارکد','دسته','واحد','خرید','فروش','موجودی','حد هشدار']]
       .concat(S.products.map(p=>[p.name,p.barcode,p.category,p.unit,n(p.cost),n(p.price),n(p.stock),n(p.min)]))));break;
-    case 'csvInvoices':download('novin-invoices-'+todayISO()+'.csv',csv([['شماره','نوع','تاریخ','طرف حساب','مبلغ','پرداختی','سود']]
+    case 'csvInvoices':download('hesabdari-invoices-'+todayISO()+'.csv',csv([['شماره','نوع','تاریخ','طرف حساب','مبلغ','پرداختی','سود']]
       .concat(S.invoices.map(i=>[i.no,i.kind==='sale'?'فروش':'خرید',i.date,i.contactName||'',n(i.total),n(i.paid),invoiceProfit(i)]))));break;
     case 'backup':exportBackupJSON();break;
     case 'shareBackup':shareBackupJSON();break;

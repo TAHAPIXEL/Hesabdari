@@ -3,20 +3,20 @@ import type { ReactNode } from "react";
 import "./globals.css";
 
 export const viewport: Viewport = {
-  themeColor: "#0C2337",
+  themeColor: "#081B2C",
   width: "device-width",
   initialScale: 1,
 };
 
 export const metadata: Metadata = {
-  title: "نوین آشپزخانه · سامانه حسابداری و انبار",
+  title: "حسابداری · فروشگاه نوین آشپزخانه",
   description:
-    "سامانه جامع حسابداری، فروش، بارکدخوان سریع و انبارداری فروشگاه نوین آشپزخانه — کارکرد کامل آفلاین و همگام‌سازی ابری خودکار.",
+    "نرم‌افزار جامع حسابداری، صدور فاکتور، بارکدخوان سریع و انبارداری (فروشگاه نوین آشپزخانه) — کارکرد کامل آفلاین و همگام‌سازی ابری خودکار.",
   manifest: "/manifest.webmanifest",
-  applicationName: "نوین آشپزخانه",
+  applicationName: "حسابداری",
   appleWebApp: {
     capable: true,
-    title: "نوین آشپزخانه",
+    title: "حسابداری",
     statusBarStyle: "default",
   },
   icons: {
