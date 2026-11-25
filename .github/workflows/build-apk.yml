@@ -12,7 +12,7 @@ permissions:
 
 jobs:
   build-apk:
-    name: Build Signed Novin Ashpazkhaneh APK
+    name: Build Signed Hesabdari APK
     runs-on: ubuntu-latest
     timeout-minutes: 15
 
@@ -41,7 +41,7 @@ jobs:
             yes | "$SDKMGR" --licenses >/dev/null 2>&1 || true
           fi
 
-      - name: Bundle offline web assets (HTML, SW, 15 Abar fonts, brand icons)
+      - name: Bundle offline web assets (HTML, SW, 15 Abar fonts, accounting icons)
         run: |
           DEST="android-app/app/src/main/assets/web"
           rm -rf "$DEST"
@@ -69,43 +69,48 @@ jobs:
         run: |
           gradle assembleRelease --no-daemon --stacktrace
 
-      - name: Verify APK Signature & Prepare Release Asset
+      - name: Verify APK Signature & Prepare Release Assets
         run: |
           APK_SRC=$(find android-app/app/build/outputs/apk/release -name "*.apk" | head -n 1)
           if [ -z "$APK_SRC" ]; then
             echo "Release APK not found!"
             exit 1
           fi
+          cp "$APK_SRC" hesabdari.apk
           cp "$APK_SRC" novin-ashpazkhaneh.apk
-          ls -lh novin-ashpazkhaneh.apk
+          ls -lh hesabdari.apk novin-ashpazkhaneh.apk
           APKSIGNER=$(find "$ANDROID_HOME/build-tools" -name apksigner -type f | sort -V | tail -n 1)
           if [ -n "$APKSIGNER" ]; then
-            "$APKSIGNER" verify --verbose novin-ashpazkhaneh.apk
+            "$APKSIGNER" verify --verbose hesabdari.apk
           fi
 
       - name: Upload APK Workflow Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: novin-ashpazkhaneh-apk
-          path: novin-ashpazkhaneh.apk
+          name: hesabdari-apk
+          path: hesabdari.apk
           if-no-files-found: error
 
-      - name: Publish Signed APK to GitHub Releases (v1.0.2 + update v1.0.1 & v1.0.0)
+      - name: Publish Signed APK to GitHub Releases (v1.0.3 + update older tags)
         if: github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          TAG="v1.0.2"
-          TITLE="اپلیکیشن اندروید نوین آشپزخانه (نسخه ۱.۰.۲)"
-          NOTES="نسخهٔ ۱.۰.۲ اپلیکیشن اندروید **نوین آشپزخانه** — رفع کامل کرش شروع برنامه و تنظیم دقیق نمایش زیر نوار کنترل‌سنتر و وضعیت بالای گوشی (مشابه همدل با AndroidX WindowInsetsCompat)، بدون پرش صفحه، پشتیبانی ۱۰۰٪ آفلاین، بارکدخوان سریع، پشتیبان JSON و همگام‌سازی خودکار ابری."
-          for OLD_TAG in "v1.0.0" "v1.0.1"; do
+          TAG="v1.0.3"
+          TITLE="اپلیکیشن اندروید حسابداری — فروشگاه نوین آشپزخانه (نسخه ۱.۰.۳)"
+          NOTES="نسخهٔ ۱.۰.۳ اپلیکیشن اندروید **حسابداری** (فروشگاه **نوین آشپزخانه**):
+          - نام برنامه **حسابداری** با لوگوی اختصاصی موضوع حسابداری (دفتر کل، ماشین‌حساب و نمودار مالی) و نام فروشگاه **نوین آشپزخانه** در داخل برنامه
+          - رفع کامل صفحهٔ سیاه دوربین بارکدخوان و فعال‌سازی موتور ترکیبی اسکن زنده (ZXing + BarcodeDetector روی تک‌استریم زندهٔ دوربین)
+          - ساخت خودکار پوشهٔ اصلی **حسابداری** در حافظهٔ اصلی گوشی و ذخیرهٔ ۱۰۰٪ تمام فایل‌های خروجی و دانلودی برنامه مستقیماً در پوشهٔ **حسابداری**
+          - نمایش دقیق زیر نوار کنترل‌سنتر و وضعیت بالای گوشی (مشابه همدل) بدون کرش و با پشتیبانی کامل آفلاین و همگام‌سازی ابری."
+          for OLD_TAG in "v1.0.0" "v1.0.1" "v1.0.2"; do
             if gh release view "$OLD_TAG" >/dev/null 2>&1; then
-              gh release upload "$OLD_TAG" novin-ashpazkhaneh.apk --clobber || true
+              gh release upload "$OLD_TAG" hesabdari.apk novin-ashpazkhaneh.apk --clobber || true
             fi
           done
           if gh release view "$TAG" >/dev/null 2>&1; then
-            gh release upload "$TAG" novin-ashpazkhaneh.apk --clobber
+            gh release upload "$TAG" hesabdari.apk novin-ashpazkhaneh.apk --clobber
             gh release edit "$TAG" --title "$TITLE" --notes "$NOTES" --latest
           else
-            gh release create "$TAG" novin-ashpazkhaneh.apk --title "$TITLE" --notes "$NOTES" --latest
+            gh release create "$TAG" hesabdari.apk novin-ashpazkhaneh.apk --title "$TITLE" --notes "$NOTES" --latest
           fi

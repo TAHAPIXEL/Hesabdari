@@ -1,8 +1,8 @@
 {
   "id": "/",
-  "name": "نوین آشپزخانه — حسابداری و فروش",
-  "short_name": "نوین آشپزخانه",
-  "description": "سامانه جامع حسابداری، صدور فاکتور، بارکدخوان فوق‌سریع و مدیریت انبار نوین آشپزخانه با اجرای کامل آفلاین و همگام‌سازی ابری خودکار",
+  "name": "حسابداری",
+  "short_name": "حسابداری",
+  "description": "نرم‌افزار جامع حسابداری، صدور فاکتور، بارکدخوان سریع و مدیریت انبار (فروشگاه نوین آشپزخانه) با کارکرد کامل آفلاین و همگام‌سازی خودکار ابری",
   "lang": "fa-IR",
   "dir": "rtl",
   "start_url": "/?source=pwa",
@@ -10,9 +10,9 @@
   "display": "standalone",
   "display_override": ["standalone", "minimal-ui"],
   "orientation": "any",
-  "background_color": "#0C2337",
-  "theme_color": "#0C2337",
-  "categories": ["finance", "business", "productivity", "shopping"],
+  "background_color": "#081B2C",
+  "theme_color": "#081B2C",
+  "categories": ["finance", "business", "productivity"],
   "prefer_related_applications": false,
   "launch_handler": {
     "client_mode": "focus-existing"
@@ -96,7 +96,7 @@
     {
       "name": "فاکتور فروش جدید",
       "short_name": "فاکتور جدید",
-      "description": "ثبت فاکتور فروش جدید در نوین آشپزخانه",
+      "description": "ثبت فاکتور فروش جدید در فروشگاه نوین آشپزخانه",
       "url": "/?action=sale",
       "icons": [
         {
@@ -122,7 +122,7 @@
     {
       "name": "پشتیبان‌گیری JSON",
       "short_name": "پشتیبان JSON",
-      "description": "دریافت یا بازیابی فایل پشتیبان JSON",
+      "description": "دریافت یا بازیابی فایل پشتیبان JSON در پوشه حسابداری",
       "url": "/?action=backup",
       "icons": [
         {
