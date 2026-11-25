@@ -119,14 +119,20 @@ jobs:
           upload_assets_to_release() {
             local rel_id="$1"
             local existing
-            existing=$(gh api "repos/${{ github.repository }}/releases/$rel_id/assets" || echo "[]")
+            existing=$(curl -fsSL --retry 4 --retry-delay 2 \
+              -H "Authorization: Bearer $GH_TOKEN" \
+              -H "Accept: application/vnd.github+json" \
+              "https://api.github.com/repos/${{ github.repository }}/releases/$rel_id/assets" || echo "[]")
             for FILE in hesabdari.apk novin-ashpazkhaneh.apk; do
               local aid
               aid=$(echo "$existing" | jq -r --arg n "$FILE" '.[] | select(.name == $n) | .id' | head -n 1)
               if [ -n "$aid" ] && [ "$aid" != "null" ]; then
-                gh api "repos/${{ github.repository }}/releases/assets/$aid" -X DELETE || true
+                curl -fsSL --retry 3 --retry-delay 2 -X DELETE \
+                  -H "Authorization: Bearer $GH_TOKEN" \
+                  -H "Accept: application/vnd.github+json" \
+                  "https://api.github.com/repos/${{ github.repository }}/releases/assets/$aid" || true
               fi
-              curl -fsSL --retry 4 --retry-delay 3 -X POST \
+              curl -fsSL --retry 5 --retry-delay 3 --retry-all-errors -X POST \
                 -H "Authorization: Bearer $GH_TOKEN" \
                 -H "Accept: application/vnd.github+json" \
                 -H "Content-Type: application/vnd.android.package-archive" \
@@ -136,29 +142,43 @@ jobs:
             done
           }
 
-          for OLD_TAG in "v1.0.0" "v1.0.1" "v1.0.2" "v1.0.3" "v1.0.4" "v1.0.5" "v1.0.6"; do
-            OLD_ID=$(gh api "repos/${{ github.repository }}/releases/tags/$OLD_TAG" --jq '.id' 2>/dev/null || true)
-            if [ -n "$OLD_ID" ] && [ "$OLD_ID" != "null" ]; then
-              upload_assets_to_release "$OLD_ID" || true
-            fi
+          git tag -f "$TAG" "${{ github.sha }}"
+          for i in 1 2 3 4; do
+            git push origin "refs/tags/$TAG" --force && break || sleep 3
           done
 
-          REL_ID=$(gh api "repos/${{ github.repository }}/releases/tags/$TAG" --jq '.id' 2>/dev/null || true)
-          if [ -n "$REL_ID" ] && [ "$REL_ID" != "null" ]; then
-            jq -n \
-              --arg name "$TITLE" \
-              --rawfile body release-notes.md \
-              '{name: $name, body: $body, draft: false, prerelease: false, make_latest: "true"}' \
-              | gh api "repos/${{ github.repository }}/releases/$REL_ID" -X PATCH --input - >/dev/null
+          jq -n \
+            --arg tag "$TAG" \
+            --arg name "$TITLE" \
+            --rawfile body release-notes.md \
+            '{tag_name: $tag, name: $name, body: $body, draft: false, prerelease: false, make_latest: "true"}' > release-payload.json
+
+          REL_ID=$(curl -fsSL \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/${{ github.repository }}/releases/tags/$TAG" 2>/dev/null | jq -r '.id // empty' || true)
+
+          if [ -n "$REL_ID" ]; then
+            curl -fsSL --retry 5 --retry-delay 3 --retry-all-errors -X PATCH \
+              -H "Authorization: Bearer $GH_TOKEN" \
+              -H "Accept: application/vnd.github+json" \
+              -d @release-payload.json \
+              "https://api.github.com/repos/${{ github.repository }}/releases/$REL_ID" >/dev/null
           else
-            REL_ID=$(jq -n \
-              --arg tag "$TAG" \
-              --arg target "${{ github.sha }}" \
-              --arg name "$TITLE" \
-              --rawfile body release-notes.md \
-              '{tag_name: $tag, target_commitish: $target, name: $name, body: $body, draft: false, prerelease: false, make_latest: "true"}' \
-              | gh api "repos/${{ github.repository }}/releases" -X POST --input - --jq '.id')
+            REL_ID=$(curl -fsSL --retry 5 --retry-delay 3 --retry-all-errors -X POST \
+              -H "Authorization: Bearer $GH_TOKEN" \
+              -H "Accept: application/vnd.github+json" \
+              -d @release-payload.json \
+              "https://api.github.com/repos/${{ github.repository }}/releases" | jq -r '.id')
           fi
 
           upload_assets_to_release "$REL_ID"
           echo "Release $TAG ($REL_ID) published as Latest!"
+
+          OLD_ID=$(curl -fsSL \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/${{ github.repository }}/releases/tags/v1.0.6" 2>/dev/null | jq -r '.id // empty' || true)
+          if [ -n "$OLD_ID" ]; then
+            upload_assets_to_release "$OLD_ID" || true
+          fi
