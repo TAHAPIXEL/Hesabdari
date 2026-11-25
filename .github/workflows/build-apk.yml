@@ -88,8 +88,8 @@ jobs:
             BADGING=$("$AAPT2" dump badging hesabdari.apk)
             echo "$BADGING" | head -n 25
             echo "$BADGING" | grep -q "name='ir.hesabdari.novin'"
-            echo "$BADGING" | grep -q "versionName='1.0.6'"
-            echo "$BADGING" | grep -q "versionCode='9'"
+            echo "$BADGING" | grep -q "versionName='1.0.7'"
+            echo "$BADGING" | grep -q "versionCode='10'"
             echo "$BADGING" | grep -q "حسابداری"
           fi
 
@@ -100,26 +100,85 @@ jobs:
           path: hesabdari.apk
           if-no-files-found: error
 
-      - name: Publish Signed APK to GitHub Releases (v1.0.6 + update older tags)
-        if: github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
+      - name: Publish Signed APK to GitHub Releases (v1.0.7 + update older tags)
+        if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/arena/') || github.event_name == 'workflow_dispatch'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          TAG="v1.0.6"
-          TITLE="اپلیکیشن اندروید حسابداری — فروشگاه نوین آشپزخانه (نسخه ۱.۰.۶)"
-          NOTES="نسخهٔ ۱.۰.۶ اپلیکیشن اندروید **حسابداری** (فروشگاه **نوین آشپزخانه**):
-          - **بازطراحی کامل و بی‌نقص ریسپانسیو و ظاهر برنامه با Tailwind CSS v4:** چیدمان دقیق برای موبایل‌های کوچک، استاندارد، تبلت و دسکتاپ بدون اسکرول افقی
-          - **مهندسی ارگونومیک جایگاه دکمه‌ها:** جداسازی کامل دکمه‌های حذف (\`d-soft\`) از دکمه‌های ذخیره/ثبت، دکمهٔ تمام‌عرض ثبت فاکتور در گام ۴، انتقال پاک‌سازی سبد به هدر کارت، تب فروش دقیقاً در مرکز نوار پایین موبایل، و دکمه‌های برچسب‌دار «بازگشت» با جهت استاندارد فارسی در زیرصفحه‌ها
-          - **چیدمان دوتایی صندوق فروش و سایدبار کامل در دسکتاپ:** اقلام و سابقه در ستون راست + پنل تسویه و ثبت فاکتور چسبان (Sticky) در ستون چپ، به همراه کلیدهای کپسولی مدرن (\`Switch\`)
-          - **هماهنگی کامل هر دو تم تیره (Aurora Neo-Dark \`#070B14\`) و روشن (Crystal Daylight \`#EEF2F9\`):** تطبیق هدر، تب‌بار، سایدبار و نوارهای وضعیت/ناوبری بومی اندروید، همراه با ارتقای کش آفلاین به \`v12\` و حفظ ۱۰۰٪ داده‌های قبلی هنگام نصب روی نسخهٔ پیشین."
-          for OLD_TAG in "v1.0.0" "v1.0.1" "v1.0.2" "v1.0.3" "v1.0.4" "v1.0.5"; do
-            if gh release view "$OLD_TAG" >/dev/null 2>&1; then
-              gh release upload "$OLD_TAG" hesabdari.apk novin-ashpazkhaneh.apk --clobber || true
-            fi
+          set -euo pipefail
+          TAG="v1.0.7"
+          TITLE="اپلیکیشن اندروید حسابداری — فروشگاه نوین آشپزخانه (نسخه ۱.۰.۷)"
+          cat <<'EOF' > release-notes.md
+          نسخهٔ ۱.۰.۷ اپلیکیشن اندروید **حسابداری** (فروشگاه **نوین آشپزخانه**):
+          - **اصلاح ریشه‌ای فاصله‌ها از لبه‌های صفحه و بین تمام باکس‌ها و متون:** حاشیهٔ ایمن ۲۰ پیکسلی در موبایل و ۴۰ پیکسلی در دسکتاپ، فضای تنفس کامل زیر هدر و بالای نوار ناوبری، و فاصلهٔ دقیق بین تمام عنوان‌ها، زیرعنوان‌ها، کارت‌ها و دکمه‌ها
+          - **اصلاح آبشار لایه‌های Tailwind CSS v4 (`@layer components` / `@layer utilities`) و عبارات `calc()`:** عملکرد ۱۰۰٪ دقیق کلاس‌های ریسپانسیو و Safe-Area در مرورگر و WebView اندروید
+          - **هماهنگی کامل و دقیق تم روز (Crystal Daylight) و تم شب (Aurora Neo-Dark):** کالیبراسیون اختصاصی کارت قهرمان، نوار صندوق شناور، فرم‌ها، هدر، تب‌بار و نوارهای وضعیت/ناوبری بومی اندروید در هر دو تم روز و شب
+          - **ارتقای کش آفلاین به `v13` و نصب مستقیم روی نسخهٔ قبلی بدون حذف اطلاعات کاربر.**
+          EOF
+
+          upload_assets_to_release() {
+            local rel_id="$1"
+            local existing
+            existing=$(curl -fsSL --retry 4 --retry-delay 2 \
+              -H "Authorization: Bearer $GH_TOKEN" \
+              -H "Accept: application/vnd.github+json" \
+              "https://api.github.com/repos/${{ github.repository }}/releases/$rel_id/assets" || echo "[]")
+            for FILE in hesabdari.apk novin-ashpazkhaneh.apk; do
+              local aid
+              aid=$(echo "$existing" | jq -r --arg n "$FILE" '.[] | select(.name == $n) | .id' | head -n 1)
+              if [ -n "$aid" ] && [ "$aid" != "null" ]; then
+                curl -fsSL --retry 3 --retry-delay 2 -X DELETE \
+                  -H "Authorization: Bearer $GH_TOKEN" \
+                  -H "Accept: application/vnd.github+json" \
+                  "https://api.github.com/repos/${{ github.repository }}/releases/assets/$aid" || true
+              fi
+              curl -fsSL --retry 5 --retry-delay 3 --retry-all-errors -X POST \
+                -H "Authorization: Bearer $GH_TOKEN" \
+                -H "Accept: application/vnd.github+json" \
+                -H "Content-Type: application/vnd.android.package-archive" \
+                --data-binary "@$FILE" \
+                "https://uploads.github.com/repos/${{ github.repository }}/releases/$rel_id/assets?name=$FILE" >/dev/null
+              echo "Uploaded $FILE to release $rel_id"
+            done
+          }
+
+          git tag -f "$TAG" "${{ github.sha }}"
+          for i in 1 2 3 4; do
+            git push origin "refs/tags/$TAG" --force && break || sleep 3
           done
-          if gh release view "$TAG" >/dev/null 2>&1; then
-            gh release upload "$TAG" hesabdari.apk novin-ashpazkhaneh.apk --clobber
-            gh release edit "$TAG" --title "$TITLE" --notes "$NOTES" --latest
+
+          jq -n \
+            --arg tag "$TAG" \
+            --arg name "$TITLE" \
+            --rawfile body release-notes.md \
+            '{tag_name: $tag, name: $name, body: $body, draft: false, prerelease: false, make_latest: "true"}' > release-payload.json
+
+          REL_ID=$(curl -fsSL \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/${{ github.repository }}/releases/tags/$TAG" 2>/dev/null | jq -r '.id // empty' || true)
+
+          if [ -n "$REL_ID" ]; then
+            curl -fsSL --retry 5 --retry-delay 3 --retry-all-errors -X PATCH \
+              -H "Authorization: Bearer $GH_TOKEN" \
+              -H "Accept: application/vnd.github+json" \
+              -d @release-payload.json \
+              "https://api.github.com/repos/${{ github.repository }}/releases/$REL_ID" >/dev/null
           else
-            gh release create "$TAG" hesabdari.apk novin-ashpazkhaneh.apk --title "$TITLE" --notes "$NOTES" --latest
+            REL_ID=$(curl -fsSL --retry 5 --retry-delay 3 --retry-all-errors -X POST \
+              -H "Authorization: Bearer $GH_TOKEN" \
+              -H "Accept: application/vnd.github+json" \
+              -d @release-payload.json \
+              "https://api.github.com/repos/${{ github.repository }}/releases" | jq -r '.id')
+          fi
+
+          upload_assets_to_release "$REL_ID"
+          echo "Release $TAG ($REL_ID) published as Latest!"
+
+          OLD_ID=$(curl -fsSL \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/${{ github.repository }}/releases/tags/v1.0.6" 2>/dev/null | jq -r '.id // empty' || true)
+          if [ -n "$OLD_ID" ]; then
+            upload_assets_to_release "$OLD_ID" || true
           fi

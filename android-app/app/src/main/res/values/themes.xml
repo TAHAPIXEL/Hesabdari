@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <style name="AppTheme" parent="android:Theme.Material.Light.NoActionBar">
+    <style name="AppTheme" parent="android:Theme.Material.NoActionBar">
         <item name="android:colorPrimary">@color/novin_navy</item>
         <item name="android:colorPrimaryDark">@color/novin_navy</item>
-        <item name="android:statusBarColor">@color/novin_paper</item>
-        <item name="android:navigationBarColor">@color/novin_paper</item>
-        <item name="android:windowBackground">@color/novin_paper</item>
-        <item name="android:windowLightStatusBar" tools:targetApi="23">true</item>
-        <item name="android:windowLightNavigationBar" tools:targetApi="27">true</item>
+        <item name="android:statusBarColor">@color/novin_navy</item>
+        <item name="android:navigationBarColor">@color/novin_navy</item>
+        <item name="android:windowBackground">@color/novin_navy</item>
+        <item name="android:windowLightStatusBar" tools:targetApi="23">false</item>
+        <item name="android:windowLightNavigationBar" tools:targetApi="27">false</item>
         <item name="android:forceDarkAllowed" tools:targetApi="29">false</item>
     </style>
 </resources>

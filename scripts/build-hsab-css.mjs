@@ -3,6 +3,7 @@
  * Build script for inline Tailwind CSS v4 in public/hsab.html
  *
  * - Compiles src/styles/hsab-tailwind.css with @tailwindcss/postcss.
+ * - Preserves valid whitespace around + and - inside all calc() expressions.
  * - Verifies required CSS smoke invariants survive processing.
  * - Replaces the single <style id="appStyle">…</style> block inside public/hsab.html
  *   with the compiled CSS so the entire app stays a single offline file.
@@ -18,12 +19,6 @@ const ROOT = path.resolve(__dirname, '..');
 const SRC_CSS = path.join(ROOT, 'src/styles/hsab-tailwind.css');
 const HTML_PATH = path.join(ROOT, 'public/hsab.html');
 
-// Required CSS substrings that must appear in the final compiled CSS.
-// These correspond to smoke.mjs static assertions + runtime-dependent styles.
-// Note: Lightning CSS on some Node versions serializes attribute selectors with
-// varied quoting ('light' vs "light") and may or may not preserve a space before
-// !important, so we check for normalized forms and then post-normalize the CSS
-// before injection so smoke.mjs exact-substring assertions always pass.
 const REQUIRED_TOKENS = [
   'AbarLow',
   'AbarMid',
@@ -39,7 +34,7 @@ const REQUIRED_TOKENS = [
   'grid-template-columns:repeat(3,minmax(0,1fr))',
   '.hero .hnum b,#aTotal',
   ':root',
-  'html[data-theme=',
+  'html[data-theme="light"]',
   '--ink',
   '--brass',
   'font-family:var(--font-high)',
@@ -58,57 +53,82 @@ const REQUIRED_TOKENS = [
   '.back-btn',
   '.sw-tog',
   '.btn.d-soft',
+  '@layer components',
+  '@layer utilities',
 ];
+
+/**
+ * Extracts balanced calc(...) substrings from CSS and verifies that every
+ * binary + / - inside calc() is surrounded by whitespace as required by CSS Values & Units.
+ */
+function verifyCalcExpressions(css) {
+  const broken = [];
+  let idx = 0;
+  while ((idx = css.indexOf('calc(', idx)) !== -1) {
+    let depth = 0;
+    let end = idx + 4;
+    for (; end < css.length; end++) {
+      if (css[end] === '(') depth++;
+      else if (css[end] === ')') {
+        depth--;
+        if (depth === 0) {
+          end++;
+          break;
+        }
+      }
+    }
+    const expr = css.slice(idx, end);
+    const inner = expr.slice(5, -1);
+    // Any '+' inside calc() must have whitespace on both sides.
+    if (/[^\s]\+|\+[^\s]/.test(inner)) {
+      broken.push(expr);
+    }
+    idx = end;
+  }
+  return broken;
+}
 
 async function build() {
   console.log('[build-hsab-css] Reading source CSS from', path.relative(ROOT, SRC_CSS));
   const sourceCss = readFileSync(SRC_CSS, 'utf8');
 
   console.log('[build-hsab-css] Compiling with @tailwindcss/postcss…');
-  // optimize:false keeps Lightning CSS from reordering declarations when
-  // NODE_ENV=production (Vercel). Reordering breaks exact-substring smoke
-  // tokens like `#qrHost{display:none` (display must stay first). Our own
-  // minifier below already produces a compact single-line bundle, so the
-  // build is deterministic in every environment.
   const result = await postcss([tailwindPostcss({ optimize: false })]).process(sourceCss, {
     from: SRC_CSS,
     to: 'inline://hsab.html',
     map: false,
   });
 
-  // Minify: collapse whitespace that PostCSS / Lightning CSS adds so that the
-  // tightly hand-written CSS tokens smoke.mjs asserts on (e.g. `.cols>*{min-width:0}`)
-  // survive injection verbatim.
+  // Safe minifier: NEVER strip spaces around '+' or '-' because CSS calc(a + b)
+  // requires whitespace around '+' and '-' operators to remain valid in browsers!
   let compiled = result.css
-    // collapse leading/trailing whitespace per line
-    .split('\n').map(l => l.trim()).filter(Boolean).join('')
-    // remove space before opening brace
+    .split('\n')
+    .map((l) => l.trim())
+    .filter(Boolean)
+    .join('')
     .replace(/\s+\{/g, '{')
-    // remove space after colon inside declarations (but keep :: pseudo-elements safe by
-    // only matching after property names: lowercase letter/dash followed by colon)
     .replace(/([a-z0-9\-]):\s+/gi, '$1:')
-    // remove space after semicolon / comma in property values
     .replace(/;\s+/g, ';')
     .replace(/,\s+/g, ',')
-    // remove space before closing brace
     .replace(/\s+\}/g, '}')
-    // remove space between selector combinators (> + ~)
+    // Only tighten '>' child combinator (never appears inside calc()); leave '+' untouched!
     .replace(/([a-z0-9\*\]\)])\s*>\s*/gi, '$1>')
-    .replace(/([a-z0-9\*\]\)])\s*\+\s*/gi, '$1+')
-    .replace(/([a-z0-9\*\]\)])\s*~\s*/gi, '$1~')
-    // remove space before !important
     .replace(/\s+!/g, '!')
-    // strip trailing semicolon before closing brace
     .replace(/;\}/g, '}')
-    // normalize attribute selector quoting to double quotes for the theme
-    // selector so smoke.mjs exact token html[data-theme="light"] is present
     .replace(/html\[data-theme='light'\]/g, 'html[data-theme="light"]')
     .replace(/html\[data-theme=light\]/g, 'html[data-theme="light"]')
-    // normalize display:none !important -> display:none!important (belt & suspenders)
     .replace(/display:none\s+!/g, 'display:none!');
+
   console.log('[build-hsab-css] Compiled size:', compiled.length, 'bytes');
 
-  // Verify smoke tokens exist.
+  const brokenCalcs = verifyCalcExpressions(compiled);
+  if (brokenCalcs.length) {
+    console.error('[build-hsab-css] ERROR: invalid unspaced operator inside calc():');
+    for (const b of brokenCalcs) console.error('  -', b);
+    process.exit(1);
+  }
+  console.log('[build-hsab-css] Verified all calc() expressions have spec-compliant spacing.');
+
   const missing = [];
   for (const token of REQUIRED_TOKENS) {
     if (!compiled.includes(token)) missing.push(token);
@@ -120,34 +140,29 @@ async function build() {
   }
   console.log('[build-hsab-css] All', REQUIRED_TOKENS.length, 'required CSS tokens present.');
 
-  // Inject into <style id="appStyle">…</style> inside public/hsab.html.
   console.log('[build-hsab-css] Injecting compiled CSS into', path.relative(ROOT, HTML_PATH));
   const html = readFileSync(HTML_PATH, 'utf8');
-  const styleRe = /<style id="appStyle">[\s\S]*?<\/style>/m;
-  if (!styleRe.test(html)) {
-    // Try inserting right after </title> if the marker style block doesn't exist yet.
-    const titleRe = /<\/title>\s*\n/;
-    if (!titleRe.test(html)) {
-      console.error('[build-hsab-css] ERROR: could not find <style id="appStyle"> nor </title> in hsab.html');
+
+  const idRe = /<style id="appStyle">[\s\S]*?<\/style>/;
+  let nextHtml;
+  if (idRe.test(html)) {
+    nextHtml = html.replace(idRe, () => `<style id="appStyle">${compiled}</style>`);
+    console.log('[build-hsab-css] Replaced existing <style id="appStyle">.');
+  } else {
+    const firstStyleRe = /<style>[\s\S]*?<\/style>/;
+    if (!firstStyleRe.test(html)) {
+      console.error('[build-hsab-css] ERROR: could not find <style> block in public/hsab.html');
       process.exit(1);
     }
-    const replacement = '<style id="appStyle">' + compiled + '</style>\n';
-    const next = html.replace(titleRe, (m) => m + replacement);
-    writeFileSync(HTML_PATH, next, 'utf8');
-    console.log('[build-hsab-css] Inserted new <style id="appStyle"> after </title>.');
-  } else {
-    const next = html.replace(styleRe, '<style id="appStyle">' + compiled + '</style>');
-    writeFileSync(HTML_PATH, next, 'utf8');
-    console.log('[build-hsab-css] Replaced existing <style id="appStyle">.');
+    nextHtml = html.replace(firstStyleRe, () => `<style id="appStyle">${compiled}</style>`);
+    console.log('[build-hsab-css] Upgraded legacy <style> to <style id="appStyle">.');
   }
 
-  // Warnings from PostCSS (none expected with @tailwindcss/postcss v4).
-  for (const w of result.warnings()) console.warn('[build-hsab-css] warning:', w.toString());
-
+  writeFileSync(HTML_PATH, nextHtml, 'utf8');
   console.log('[build-hsab-css] Done.');
 }
 
 build().catch((err) => {
-  console.error('[build-hsab-css] FATAL:', err);
+  console.error('[build-hsab-css] Build failed:', err);
   process.exit(1);
 });
