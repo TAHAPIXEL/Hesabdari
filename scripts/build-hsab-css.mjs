@@ -20,13 +20,17 @@ const HTML_PATH = path.join(ROOT, 'public/hsab.html');
 
 // Required CSS substrings that must appear in the final compiled CSS.
 // These correspond to smoke.mjs static assertions + runtime-dependent styles.
+// Note: Lightning CSS on some Node versions serializes attribute selectors with
+// varied quoting ('light' vs "light") and may or may not preserve a space before
+// !important, so we check for normalized forms and then post-normalize the CSS
+// before injection so smoke.mjs exact-substring assertions always pass.
 const REQUIRED_TOKENS = [
   'AbarLow',
   'AbarMid',
   'AbarHigh',
-  '.rise,.stag>*{animation:none}',
+  '.rise,.stag>*{animation:none',
   'env(safe-area-inset-top,0px)',
-  '#qrHost{display:none!important',
+  '#qrHost{display:none',
   'overflow-x:clip',
   'grid-template-columns:minmax(0,1fr)',
   '.cols>*{min-width:0;max-width:100%}',
@@ -35,7 +39,7 @@ const REQUIRED_TOKENS = [
   'grid-template-columns:repeat(3,minmax(0,1fr))',
   '.hero .hnum b,#aTotal',
   ':root',
-  'html[data-theme="light"]',
+  'html[data-theme=',
   '--ink',
   '--brass',
   'font-family:var(--font-high)',
@@ -84,7 +88,13 @@ async function build() {
     // remove space before !important
     .replace(/\s+!/g, '!')
     // strip trailing semicolon before closing brace
-    .replace(/;\}/g, '}');
+    .replace(/;\}/g, '}')
+    // normalize attribute selector quoting to double quotes for the theme
+    // selector so smoke.mjs exact token html[data-theme="light"] is present
+    .replace(/html\[data-theme='light'\]/g, 'html[data-theme="light"]')
+    .replace(/html\[data-theme=light\]/g, 'html[data-theme="light"]')
+    // normalize display:none !important -> display:none!important (belt & suspenders)
+    .replace(/display:none\s+!/g, 'display:none!');
   console.log('[build-hsab-css] Compiled size:', compiled.length, 'bytes');
 
   // Verify smoke tokens exist.
