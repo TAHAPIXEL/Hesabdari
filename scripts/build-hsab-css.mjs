@@ -52,6 +52,12 @@ const REQUIRED_TOKENS = [
   '.hist-box',
   '.hist-arrow',
   '.sect',
+  '.pos-grid',
+  '.pos-side',
+  '.top-in',
+  '.back-btn',
+  '.sw-tog',
+  '.btn.d-soft',
 ];
 
 async function build() {
