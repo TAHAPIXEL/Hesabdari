@@ -2,14 +2,14 @@
 <html lang="fa" dir="rtl">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
 <meta name="theme-color" content="#0C2337">
 <meta name="color-scheme" content="light">
 <meta name="application-name" content="نوین آشپزخانه">
 <meta name="apple-mobile-web-app-title" content="نوین آشپزخانه">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="description" content="نوین آشپزخانه — سامانه هوشمند حسابداری، صدور فاکتور، بارکدخوان فوق‌سریع و انبارداری با کارکرد کامل آفلاین و همگام‌سازی خودکار ابری.">
 <title>نوین آشپزخانه · سامانه حسابداری و انبار</title>
 <link rel="manifest" href="/manifest.webmanifest">
@@ -85,8 +85,8 @@ svg{width:18px;height:18px;flex:none}
 .mono{letter-spacing:.06em}
 
 /* ===== top ===== */
-.top{position:fixed;top:0;inset-inline:0;height:var(--top);z-index:60;background:var(--deep);color:#EFE9DE;
-  display:flex;align-items:center;gap:8px;padding:0 10px;box-shadow:0 2px 14px rgba(15,29,42,.25)}
+.top{position:fixed;top:0;inset-inline:0;height:calc(var(--top) + env(safe-area-inset-top,0px));z-index:60;background:var(--deep);color:#EFE9DE;
+  display:flex;align-items:center;gap:8px;padding:env(safe-area-inset-top,0px) 10px 0;box-shadow:0 2px 14px rgba(15,29,42,.25)}
 .top::after{content:"";position:absolute;inset-inline:0;bottom:0;height:2px;
   background:linear-gradient(90deg,var(--brass),rgba(192,138,46,.25) 45%,var(--red))}
 .brand{display:flex;align-items:center;gap:9px;min-width:0;flex:1}
@@ -108,8 +108,8 @@ svg{width:18px;height:18px;flex:none}
 .ibtn svg{width:19px;height:19px}
 
 /* ===== shell ===== */
-.body{display:block;padding-top:var(--top)}
-.page{padding:14px 12px calc(var(--bar) + 34px);max-width:1320px;margin:0 auto}
+.body{display:block;padding-top:calc(var(--top) + env(safe-area-inset-top,0px))}
+.page{padding:14px 12px calc(var(--bar) + 34px + env(safe-area-inset-bottom,0px));max-width:1320px;margin:0 auto}
 .rail{display:none}
 .cols{display:grid;gap:12px}
 
@@ -357,7 +357,7 @@ select.inp{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns
 .tab.mid.on::before{display:none}
 
 /* pos bar */
-.posbar{position:fixed;inset-inline:0;bottom:var(--bar);z-index:65;padding:0 10px;
+.posbar{position:fixed;inset-inline:0;bottom:calc(var(--bar) + env(safe-area-inset-bottom,0px));z-index:65;padding:0 10px;
   transform:translateY(150%);transition:transform .3s var(--ease)}
 .posbar.on{transform:none}
 .posbar .in{display:flex;align-items:center;gap:10px;background:var(--deep);color:#EFE9DE;

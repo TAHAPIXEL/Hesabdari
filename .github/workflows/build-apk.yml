@@ -52,21 +52,13 @@ jobs:
           cp public/favicon.ico "$DEST/favicon.ico"
           cp -r public/fonts "$DEST/fonts"
           cp -r public/icons "$DEST/icons"
-          ls -la "$DEST" "$DEST/fonts" "$DEST/icons"
+          ls -la "$DEST"
 
-      - name: Generate Release Signing Keystore
+      - name: Prepare Persistent Release Signing Keystore
         run: |
-          KS_PATH="$RUNNER_TEMP/novin-release.jks"
-          keytool -genkeypair -v \
-            -keystore "$KS_PATH" \
-            -storetype PKCS12 \
-            -alias novin \
-            -keyalg RSA \
-            -keysize 2048 \
-            -validity 10000 \
-            -storepass novin123456 \
-            -keypass novin123456 \
-            -dname "CN=Novin Ashpazkhaneh, OU=Accounting, O=NovinAshpazkhaneh, L=Tehran, S=Tehran, C=IR"
+          KS_PATH="$RUNNER_TEMP/novin-release.p12"
+          base64 -d android-app/signing/release.p12.b64 > "$KS_PATH"
+          keytool -list -keystore "$KS_PATH" -storetype PKCS12 -storepass novin123456
           echo "NOVIN_KEYSTORE_PATH=$KS_PATH" >> "$GITHUB_ENV"
           echo "NOVIN_KEYSTORE_PASSWORD=novin123456" >> "$GITHUB_ENV"
           echo "NOVIN_KEY_ALIAS=novin" >> "$GITHUB_ENV"
@@ -98,14 +90,17 @@ jobs:
           path: novin-ashpazkhaneh.apk
           if-no-files-found: error
 
-      - name: Publish Signed APK to GitHub Releases (v1.0.0)
+      - name: Publish Signed APK to GitHub Releases (v1.0.1 + update v1.0.0)
         if: github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          TAG="v1.0.0"
-          TITLE="اپلیکیشن اندروید نوین آشپزخانه (نسخه ۱.۰.۰)"
-          NOTES="نسخهٔ رسمی اندروید (APK) سامانهٔ حسابداری، فروش و انبارداری **نوین آشپزخانه** — با اجرای بدون پرش، پشتیبانی کامل آفلاین، فونت‌های فارسی ابر، اسکنر فوق‌سریع بارکد، پشتیبان‌گیری و بازیابی JSON، و همگام‌سازی خودکار ابری."
+          TAG="v1.0.1"
+          TITLE="اپلیکیشن اندروید نوین آشپزخانه (نسخه ۱.۰.۱)"
+          NOTES="نسخهٔ ۱.۰.۱ اپلیکیشن اندروید **نوین آشپزخانه** — با رعایت کامل حاشیهٔ نوار وضعیت و کنترل‌سنتر بالای گوشی و نوار ناوبری پایین (عدم رفتن برنامه زیر نوار بالای اندروید ۱۵)، بدون پرش صفحه، پشتیبانی ۱۰۰٪ آفلاین، بارکدخوان سریع، پشتیبان JSON و همگام‌سازی خودکار ابری."
+          if gh release view "v1.0.0" >/dev/null 2>&1; then
+            gh release upload "v1.0.0" novin-ashpazkhaneh.apk --clobber || true
+          fi
           if gh release view "$TAG" >/dev/null 2>&1; then
             gh release upload "$TAG" novin-ashpazkhaneh.apk --clobber
             gh release edit "$TAG" --title "$TITLE" --notes "$NOTES" --latest

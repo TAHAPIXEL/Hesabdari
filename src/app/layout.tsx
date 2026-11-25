@@ -6,7 +6,6 @@ export const viewport: Viewport = {
   themeColor: "#0C2337",
   width: "device-width",
   initialScale: 1,
-  viewportFit: "cover",
 };
 
 export const metadata: Metadata = {
@@ -18,7 +17,7 @@ export const metadata: Metadata = {
   appleWebApp: {
     capable: true,
     title: "نوین آشپزخانه",
-    statusBarStyle: "black-translucent",
+    statusBarStyle: "default",
   },
   icons: {
     icon: [
