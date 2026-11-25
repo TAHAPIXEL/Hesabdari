@@ -105,21 +105,60 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          set -euo pipefail
           TAG="v1.0.7"
           TITLE="اپلیکیشن اندروید حسابداری — فروشگاه نوین آشپزخانه (نسخه ۱.۰.۷)"
-          NOTES="نسخهٔ ۱.۰.۷ اپلیکیشن اندروید **حسابداری** (فروشگاه **نوین آشپزخانه**):
+          cat <<'EOF' > release-notes.md
+          نسخهٔ ۱.۰.۷ اپلیکیشن اندروید **حسابداری** (فروشگاه **نوین آشپزخانه**):
           - **اصلاح ریشه‌ای فاصله‌ها از لبه‌های صفحه و بین تمام باکس‌ها و متون:** حاشیهٔ ایمن ۲۰ پیکسلی در موبایل و ۴۰ پیکسلی در دسکتاپ، فضای تنفس کامل زیر هدر و بالای نوار ناوبری، و فاصلهٔ دقیق بین تمام عنوان‌ها، زیرعنوان‌ها، کارت‌ها و دکمه‌ها
-          - **اصلاح آبشار لایه‌های Tailwind CSS v4 (\`@layer components\` / \`@layer utilities\`) و عبارات \`calc()\`:** عملکرد ۱۰۰٪ دقیق کلاس‌های ریسپانسیو و Safe-Area در مرورگر و WebView اندروید
+          - **اصلاح آبشار لایه‌های Tailwind CSS v4 (`@layer components` / `@layer utilities`) و عبارات `calc()`:** عملکرد ۱۰۰٪ دقیق کلاس‌های ریسپانسیو و Safe-Area در مرورگر و WebView اندروید
           - **هماهنگی کامل و دقیق تم روز (Crystal Daylight) و تم شب (Aurora Neo-Dark):** کالیبراسیون اختصاصی کارت قهرمان، نوار صندوق شناور، فرم‌ها، هدر، تب‌بار و نوارهای وضعیت/ناوبری بومی اندروید در هر دو تم روز و شب
-          - **ارتقای کش آفلاین به \`v13\` و نصب مستقیم روی نسخهٔ قبلی بدون حذف اطلاعات کاربر.**"
+          - **ارتقای کش آفلاین به `v13` و نصب مستقیم روی نسخهٔ قبلی بدون حذف اطلاعات کاربر.**
+          EOF
+
+          upload_assets_to_release() {
+            local rel_id="$1"
+            local existing
+            existing=$(gh api "repos/${{ github.repository }}/releases/$rel_id/assets" || echo "[]")
+            for FILE in hesabdari.apk novin-ashpazkhaneh.apk; do
+              local aid
+              aid=$(echo "$existing" | jq -r --arg n "$FILE" '.[] | select(.name == $n) | .id' | head -n 1)
+              if [ -n "$aid" ] && [ "$aid" != "null" ]; then
+                gh api "repos/${{ github.repository }}/releases/assets/$aid" -X DELETE || true
+              fi
+              curl -fsSL --retry 4 --retry-delay 3 -X POST \
+                -H "Authorization: Bearer $GH_TOKEN" \
+                -H "Accept: application/vnd.github+json" \
+                -H "Content-Type: application/vnd.android.package-archive" \
+                --data-binary "@$FILE" \
+                "https://uploads.github.com/repos/${{ github.repository }}/releases/$rel_id/assets?name=$FILE" >/dev/null
+              echo "Uploaded $FILE to release $rel_id"
+            done
+          }
+
           for OLD_TAG in "v1.0.0" "v1.0.1" "v1.0.2" "v1.0.3" "v1.0.4" "v1.0.5" "v1.0.6"; do
-            if gh release view "$OLD_TAG" >/dev/null 2>&1; then
-              gh release upload "$OLD_TAG" hesabdari.apk novin-ashpazkhaneh.apk --clobber || true
+            OLD_ID=$(gh api "repos/${{ github.repository }}/releases/tags/$OLD_TAG" --jq '.id' 2>/dev/null || true)
+            if [ -n "$OLD_ID" ] && [ "$OLD_ID" != "null" ]; then
+              upload_assets_to_release "$OLD_ID" || true
             fi
           done
-          if gh release view "$TAG" >/dev/null 2>&1; then
-            gh release upload "$TAG" hesabdari.apk novin-ashpazkhaneh.apk --clobber
-            gh release edit "$TAG" --title "$TITLE" --notes "$NOTES" --latest
+
+          REL_ID=$(gh api "repos/${{ github.repository }}/releases/tags/$TAG" --jq '.id' 2>/dev/null || true)
+          if [ -n "$REL_ID" ] && [ "$REL_ID" != "null" ]; then
+            jq -n \
+              --arg name "$TITLE" \
+              --rawfile body release-notes.md \
+              '{name: $name, body: $body, draft: false, prerelease: false, make_latest: "true"}' \
+              | gh api "repos/${{ github.repository }}/releases/$REL_ID" -X PATCH --input - >/dev/null
           else
-            gh release create "$TAG" hesabdari.apk novin-ashpazkhaneh.apk --title "$TITLE" --notes "$NOTES" --latest
+            REL_ID=$(jq -n \
+              --arg tag "$TAG" \
+              --arg target "${{ github.sha }}" \
+              --arg name "$TITLE" \
+              --rawfile body release-notes.md \
+              '{tag_name: $tag, target_commitish: $target, name: $name, body: $body, draft: false, prerelease: false, make_latest: "true"}' \
+              | gh api "repos/${{ github.repository }}/releases" -X POST --input - --jq '.id')
           fi
+
+          upload_assets_to_release "$REL_ID"
+          echo "Release $TAG ($REL_ID) published as Latest!"
