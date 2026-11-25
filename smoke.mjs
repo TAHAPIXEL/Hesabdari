@@ -184,4 +184,25 @@ for (const row of rows) {
   }
 }
 console.log("\ntotal:", (w.__out || []).length, "failed:", fails);
+
+// Static Android project safety checks (prevent Android 15/16 cutout crash & ensure Hamdel-style WindowInsetsCompat)
+const androidResDir = "android-app/app/src/main/res";
+const mainActivitySrc = fs.readFileSync(
+  "android-app/app/src/main/java/ir/novinashpazkhaneh/hesabdari/MainActivity.java",
+  "utf8"
+);
+const themesSrc = fs.readFileSync(`${androidResDir}/values/themes.xml`, "utf8");
+const androidChecks = [
+  ["android no values-v28/v35 cutout override crash", !fs.existsSync(`${androidResDir}/values-v28`) && !fs.existsSync(`${androidResDir}/values-v35`) && !themesSrc.includes("windowLayoutInDisplayCutoutMode")],
+  ["android setContentView runs before setupSystemBars", mainActivitySrc.indexOf("setContentView(root)") > 0 && mainActivitySrc.indexOf("setContentView(root)") < mainActivitySrc.indexOf("setupSystemBars()")],
+  ["android uses AndroidX WindowInsetsCompat like Hamdel", mainActivitySrc.includes("ViewCompat.setOnApplyWindowInsetsListener") && mainActivitySrc.includes("WindowInsetsCompat.Type.systemBars()") && mainActivitySrc.includes("WindowInsetsCompat.Type.displayCutout()")],
+];
+for (const [label, ok] of androidChecks) {
+  if (ok) console.log("ok  ", label, "-> true");
+  else {
+    fails++;
+    console.log("FAIL", label, "-> false");
+  }
+}
+
 process.exit(fails ? 1 : 0);

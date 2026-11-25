@@ -8,8 +8,8 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.content.res.Configuration;
 import android.graphics.Color;
-import android.graphics.Insets;
 import android.net.ConnectivityManager;
 import android.net.Network;
 import android.net.NetworkCapabilities;
@@ -25,9 +25,6 @@ import android.provider.MediaStore;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
-import android.view.WindowInsets;
-import android.view.WindowInsetsController;
-import android.view.WindowManager;
 import android.webkit.CookieManager;
 import android.webkit.JavascriptInterface;
 import android.webkit.PermissionRequest;
@@ -38,9 +35,15 @@ import android.webkit.WebResourceResponse;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
-import android.widget.LinearLayout;
+import android.widget.FrameLayout;
 import android.window.OnBackInvokedCallback;
 import android.window.OnBackInvokedDispatcher;
+
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowCompat;
+import androidx.core.view.WindowInsetsCompat;
+import androidx.core.view.WindowInsetsControllerCompat;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -64,14 +67,11 @@ public class MainActivity extends Activity {
     private static final String APP_ORIGIN = "https://" + APP_HOST;
     private static final int REQ_PERMISSIONS = 1001;
     private static final int REQ_FILE_CHOOSER = 1002;
-    private static final String CACHED_HTML_NAME = "cached_hsab_v7.html";
+    private static final String CACHED_HTML_NAME = "cached_hsab_v8.html";
 
-    private static final int COLOR_NAVY = Color.parseColor("#0C2337");
     private static final int COLOR_PAPER = Color.parseColor("#FCFAF5");
 
     private WebView webView;
-    private View statusBarSpacer;
-    private View navBarSpacer;
     private ValueCallback<Uri[]> filePathCallback;
     private PermissionRequest pendingWebCameraRequest;
     private ConnectivityManager.NetworkCallback networkCallback;
@@ -83,38 +83,19 @@ public class MainActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        configureSystemBars();
-
-        LinearLayout root = new LinearLayout(this);
-        root.setOrientation(LinearLayout.VERTICAL);
-        root.setBackgroundColor(COLOR_NAVY);
-
-        statusBarSpacer = new View(this);
-        statusBarSpacer.setBackgroundColor(COLOR_NAVY);
-        root.addView(statusBarSpacer, new LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                0
-        ));
+        FrameLayout root = new FrameLayout(this);
+        root.setBackgroundColor(COLOR_PAPER);
 
         webView = new WebView(this);
         webView.setBackgroundColor(COLOR_PAPER);
         webView.setOverScrollMode(WebView.OVER_SCROLL_NEVER);
-        LinearLayout.LayoutParams webParams = new LinearLayout.LayoutParams(
+        root.addView(webView, new FrameLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
-                0,
-                1.0f
-        );
-        root.addView(webView, webParams);
-
-        navBarSpacer = new View(this);
-        navBarSpacer.setBackgroundColor(COLOR_PAPER);
-        root.addView(navBarSpacer, new LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                0
+                ViewGroup.LayoutParams.MATCH_PARENT
         ));
-
         setContentView(root);
-        attachSystemBarInsetsGuard(root);
+
+        setupSystemBars();
 
         configureWebView();
         requestStartupPermissions();
@@ -126,95 +107,76 @@ public class MainActivity extends Activity {
         refreshCachedHtmlInBackground();
     }
 
-    @SuppressWarnings("deprecation")
-    private void configureSystemBars() {
-        Window window = getWindow();
-        if (window == null) return;
+    /**
+     * Mirrors Capacitor 8 SystemBars (as used in Hamdel):
+     * pads DecorView by systemBars | displayCutout (plus IME when keyboard is open)
+     * and passes zeroed system-bar insets down to WebView so the app sits strictly
+     * below the top status / control-center bar and above the bottom navigation bar
+     * without triggering Android 15/16 cutout-mode IllegalArgumentException.
+     */
+    private void setupSystemBars() {
+        try {
+            final Window window = getWindow();
+            if (window == null) return;
+            final View decorView = window.getDecorView();
 
-        window.clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
-        window.clearFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS);
-        window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
-        window.setStatusBarColor(COLOR_NAVY);
-        window.setNavigationBarColor(COLOR_PAPER);
+            decorView.setBackgroundColor(COLOR_PAPER);
 
-        if (Build.VERSION.SDK_INT >= 30) {
-            window.setDecorFitsSystemWindows(true);
-            WindowInsetsController controller = window.getInsetsController();
-            if (controller != null) {
-                controller.show(WindowInsets.Type.statusBars() | WindowInsets.Type.navigationBars());
-                // White status-bar icons on deep navy (#0C2337), dark nav-bar icons on light paper (#FCFAF5)
-                controller.setSystemBarsAppearance(
-                        0,
-                        WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS
+            ViewCompat.setOnApplyWindowInsetsListener(decorView, (v, insets) -> {
+                Insets systemBarsInsets = insets.getInsets(
+                        WindowInsetsCompat.Type.systemBars() | WindowInsetsCompat.Type.displayCutout()
                 );
-                controller.setSystemBarsAppearance(
-                        WindowInsetsController.APPEARANCE_LIGHT_NAVIGATION_BARS,
-                        WindowInsetsController.APPEARANCE_LIGHT_NAVIGATION_BARS
+                Insets imeInsets = insets.getInsets(WindowInsetsCompat.Type.ime());
+                boolean keyboardVisible = insets.isVisible(WindowInsetsCompat.Type.ime());
+                int bottomPad = keyboardVisible
+                        ? Math.max(systemBarsInsets.bottom, imeInsets.bottom)
+                        : systemBarsInsets.bottom;
+
+                v.setPadding(
+                        systemBarsInsets.left,
+                        systemBarsInsets.top,
+                        systemBarsInsets.right,
+                        bottomPad
                 );
-            }
-        } else {
-            int flags = View.SYSTEM_UI_FLAG_VISIBLE;
-            if (Build.VERSION.SDK_INT >= 26) {
-                flags |= View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR;
-            }
-            window.getDecorView().setSystemUiVisibility(flags);
+
+                return new WindowInsetsCompat.Builder(insets)
+                        .setInsets(
+                                WindowInsetsCompat.Type.systemBars() | WindowInsetsCompat.Type.displayCutout(),
+                                Insets.of(0, 0, 0, 0)
+                        )
+                        .build();
+            });
+
+            applySystemBarAppearance();
+            ViewCompat.requestApplyInsets(decorView);
+        } catch (Throwable ignored) {
         }
     }
 
-    @SuppressWarnings("deprecation")
-    private void attachSystemBarInsetsGuard(final LinearLayout root) {
-        root.setOnApplyWindowInsetsListener((view, insets) -> {
-            int topInset;
-            int bottomInset;
-            int leftInset;
-            int rightInset;
-
-            if (Build.VERSION.SDK_INT >= 30) {
-                Insets sys = insets.getInsets(
-                        WindowInsets.Type.systemBars() | WindowInsets.Type.displayCutout()
-                );
-                Insets ime = insets.getInsets(WindowInsets.Type.ime());
-                topInset = sys.top;
-                bottomInset = Math.max(sys.bottom, ime.bottom);
-                leftInset = sys.left;
-                rightInset = sys.right;
-            } else {
-                topInset = insets.getSystemWindowInsetTop();
-                bottomInset = insets.getSystemWindowInsetBottom();
-                leftInset = insets.getSystemWindowInsetLeft();
-                rightInset = insets.getSystemWindowInsetRight();
-            }
-
-            if (statusBarSpacer != null) {
-                ViewGroup.LayoutParams tp = statusBarSpacer.getLayoutParams();
-                if (tp.height != topInset) {
-                    tp.height = topInset;
-                    statusBarSpacer.setLayoutParams(tp);
-                }
-            }
-            if (navBarSpacer != null) {
-                ViewGroup.LayoutParams bp = navBarSpacer.getLayoutParams();
-                if (bp.height != bottomInset) {
-                    bp.height = bottomInset;
-                    navBarSpacer.setLayoutParams(bp);
-                }
-            }
-            if (view.getPaddingLeft() != leftInset || view.getPaddingRight() != rightInset) {
-                view.setPadding(leftInset, 0, rightInset, 0);
-            }
-
-            if (Build.VERSION.SDK_INT >= 30) {
-                return WindowInsets.CONSUMED;
-            }
-            return insets.consumeSystemWindowInsets();
-        });
-        root.requestApplyInsets();
+    private void applySystemBarAppearance() {
+        try {
+            Window window = getWindow();
+            if (window == null) return;
+            View decorView = window.getDecorView();
+            decorView.setBackgroundColor(COLOR_PAPER);
+            WindowInsetsControllerCompat controller = WindowCompat.getInsetsController(window, decorView);
+            controller.setAppearanceLightStatusBars(true);
+            controller.setAppearanceLightNavigationBars(true);
+            controller.show(WindowInsetsCompat.Type.systemBars());
+        } catch (Throwable ignored) {
+        }
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        configureSystemBars();
+        applySystemBarAppearance();
+    }
+
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+        applySystemBarAppearance();
     }
 
     @Override
@@ -264,7 +226,7 @@ public class MainActivity extends Activity {
         ws.setTextZoom(100);
         ws.setCacheMode(WebSettings.LOAD_DEFAULT);
         ws.setMixedContentMode(WebSettings.MIXED_CONTENT_NEVER_ALLOW);
-        ws.setUserAgentString(ws.getUserAgentString() + " NovinAshpazkhanehAPK/1.0.1");
+        ws.setUserAgentString(ws.getUserAgentString() + " NovinAshpazkhanehAPK/1.0.2");
 
         CookieManager cm = CookieManager.getInstance();
         cm.setAcceptCookie(true);
@@ -560,12 +522,15 @@ public class MainActivity extends Activity {
     }
 
     private void registerPredictiveBackIfSupported() {
-        if (Build.VERSION.SDK_INT >= 33) {
-            backInvokedCallback = this::dispatchBackToWebOrExit;
-            getOnBackInvokedDispatcher().registerOnBackInvokedCallback(
-                    OnBackInvokedDispatcher.PRIORITY_DEFAULT,
-                    backInvokedCallback
-            );
+        try {
+            if (Build.VERSION.SDK_INT >= 33) {
+                backInvokedCallback = this::dispatchBackToWebOrExit;
+                getOnBackInvokedDispatcher().registerOnBackInvokedCallback(
+                        OnBackInvokedDispatcher.PRIORITY_DEFAULT,
+                        backInvokedCallback
+                );
+            }
+        } catch (Throwable ignored) {
         }
     }
 
