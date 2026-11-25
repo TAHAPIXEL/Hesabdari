@@ -3,6 +3,8 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "build:css": "node scripts/build-hsab-css.mjs",
+    "prebuild": "node scripts/build-hsab-css.mjs",
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",

@@ -88,7 +88,7 @@ jobs:
             BADGING=$("$AAPT2" dump badging hesabdari.apk)
             echo "$BADGING" | head -n 25
             echo "$BADGING" | grep -q "name='ir.hesabdari.novin'"
-            echo "$BADGING" | grep -q "versionName='1.0.4'"
+            echo "$BADGING" | grep -q "versionName='1.0.5'"
             echo "$BADGING" | grep -q "حسابداری"
           fi
 
