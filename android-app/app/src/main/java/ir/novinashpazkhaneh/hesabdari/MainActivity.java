@@ -84,11 +84,13 @@ public class MainActivity extends Activity {
     private static final int REQ_FILE_CHOOSER = 1002;
     private static final int REQ_WEB_CAMERA = 1003;
     private static final int REQ_MANAGE_STORAGE = 1004;
-    private static final String CACHED_HTML_NAME = "cached_hsab_v11.html";
+    private static final int APP_VERSION_CODE = 9;
+    private static final String CACHED_HTML_NAME = "cached_hsab_v12.html";
     private static final String PREFS_NAME = "hesabdari_native_prefs";
     private static final String PREF_THEME_KEY = "app.theme";
+    private static final String PREF_VER_KEY = "app.installed_version";
 
-    private static final int COLOR_PAPER = Color.parseColor("#FCFAF5");
+    private static final int COLOR_PAPER = Color.parseColor("#EEF2F9");
     private static final int COLOR_DARK = Color.parseColor("#070B14");
 
     private String currentTheme = "dark";
@@ -136,6 +138,7 @@ public class MainActivity extends Activity {
         setupSystemBars();
 
         configureWebView();
+        purgeStaleWebCacheOnUpgrade();
         ensureHesabdariFolderCreated(false);
         registerNetworkSyncWatcher();
         registerPredictiveBackIfSupported();
@@ -157,6 +160,34 @@ public class MainActivity extends Activity {
                     //noinspection ResultOfMethodCallIgnored
                     f.delete();
                 }
+            }
+        } catch (Throwable ignored) {
+        }
+    }
+
+    /**
+     * When the user installs a newer APK on top of an older version, purge stale WebView HTTP
+     * resource caches and any old cached HTML shell while keeping localStorage / IndexedDB intact.
+     */
+    private void purgeStaleWebCacheOnUpgrade() {
+        try {
+            SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
+            int prevVer = prefs.getInt(PREF_VER_KEY, 0);
+            if (prevVer < APP_VERSION_CODE) {
+                File dir = getFilesDir();
+                File[] files = dir != null ? dir.listFiles() : null;
+                if (files != null) {
+                    for (File f : files) {
+                        if (f.getName().startsWith("cached_hsab_")) {
+                            //noinspection ResultOfMethodCallIgnored
+                            f.delete();
+                        }
+                    }
+                }
+                if (webView != null) {
+                    webView.clearCache(true);
+                }
+                prefs.edit().putInt(PREF_VER_KEY, APP_VERSION_CODE).apply();
             }
         } catch (Throwable ignored) {
         }
@@ -498,7 +529,7 @@ public class MainActivity extends Activity {
         ws.setTextZoom(100);
         ws.setCacheMode(WebSettings.LOAD_DEFAULT);
         ws.setMixedContentMode(WebSettings.MIXED_CONTENT_NEVER_ALLOW);
-        ws.setUserAgentString(ws.getUserAgentString() + " HesabdariAPK/1.0.4");
+        ws.setUserAgentString(ws.getUserAgentString() + " HesabdariAPK/1.0.6");
 
         CookieManager cm = CookieManager.getInstance();
         cm.setAcceptCookie(true);
