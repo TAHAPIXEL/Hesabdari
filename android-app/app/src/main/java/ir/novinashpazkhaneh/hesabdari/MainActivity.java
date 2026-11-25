@@ -84,10 +84,14 @@ public class MainActivity extends Activity {
     private static final int REQ_FILE_CHOOSER = 1002;
     private static final int REQ_WEB_CAMERA = 1003;
     private static final int REQ_MANAGE_STORAGE = 1004;
-    private static final String CACHED_HTML_NAME = "cached_hsab_v10.html";
+    private static final String CACHED_HTML_NAME = "cached_hsab_v11.html";
     private static final String PREFS_NAME = "hesabdari_native_prefs";
+    private static final String PREF_THEME_KEY = "app.theme";
 
     private static final int COLOR_PAPER = Color.parseColor("#FCFAF5");
+    private static final int COLOR_DARK = Color.parseColor("#070B14");
+
+    private String currentTheme = "dark";
 
     private WebView webView;
     private ValueCallback<Uri[]> filePathCallback;
@@ -118,6 +122,16 @@ public class MainActivity extends Activity {
                 ViewGroup.LayoutParams.MATCH_PARENT
         ));
         setContentView(root);
+
+        // Restore saved theme preference before drawing system bars
+        try {
+            currentTheme = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+                    .getString(PREF_THEME_KEY, "dark");
+            if (!"light".equals(currentTheme)) currentTheme = "dark";
+        } catch (Throwable ignored) {}
+        int initialBg = "dark".equals(currentTheme) ? COLOR_DARK : COLOR_PAPER;
+        root.setBackgroundColor(initialBg);
+        webView.setBackgroundColor(initialBg);
 
         setupSystemBars();
 
@@ -205,10 +219,14 @@ public class MainActivity extends Activity {
             Window window = getWindow();
             if (window == null) return;
             View decorView = window.getDecorView();
-            decorView.setBackgroundColor(COLOR_PAPER);
+            boolean isDark = "dark".equals(currentTheme);
+            int bg = isDark ? COLOR_DARK : COLOR_PAPER;
+            decorView.setBackgroundColor(bg);
+            if (webView != null) webView.setBackgroundColor(bg);
             WindowInsetsControllerCompat controller = WindowCompat.getInsetsController(window, decorView);
-            controller.setAppearanceLightStatusBars(true);
-            controller.setAppearanceLightNavigationBars(true);
+            // Light (Crystal Daylight) → dark icons on light bars; Dark (Aurora) → light icons
+            controller.setAppearanceLightStatusBars(!isDark);
+            controller.setAppearanceLightNavigationBars(!isDark);
             controller.show(WindowInsetsCompat.Type.systemBars());
         } catch (Throwable ignored) {
         }
@@ -1093,6 +1111,19 @@ public class MainActivity extends Activity {
             } catch (Exception ignored) {
                 return false;
             }
+        }
+
+        @JavascriptInterface
+        public void setAppTheme(String mode) {
+            final String m = ("light".equals(mode)) ? "light" : "dark";
+            runOnUiThread(() -> {
+                currentTheme = m;
+                try {
+                    getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+                            .edit().putString(PREF_THEME_KEY, m).apply();
+                } catch (Throwable ignored) {}
+                applySystemBarAppearance();
+            });
         }
 
         @JavascriptInterface

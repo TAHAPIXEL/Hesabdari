@@ -1,8 +1,13 @@
 {
   "name": "daftar-hesabdari",
   "private": true,
+  "engines": {
+    "node": ">=20.0.0"
+  },
   "scripts": {
     "dev": "next dev",
+    "build:css": "node scripts/build-hsab-css.mjs",
+    "prebuild": "node scripts/build-hsab-css.mjs",
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
