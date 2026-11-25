@@ -1,6 +1,9 @@
 {
   "name": "daftar-hesabdari",
   "private": true,
+  "engines": {
+    "node": ">=20.0.0"
+  },
   "scripts": {
     "dev": "next dev",
     "build:css": "node scripts/build-hsab-css.mjs",
