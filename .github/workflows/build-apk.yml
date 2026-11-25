@@ -83,6 +83,14 @@ jobs:
           if [ -n "$APKSIGNER" ]; then
             "$APKSIGNER" verify --verbose hesabdari.apk
           fi
+          AAPT2=$(find "$ANDROID_HOME/build-tools" -name aapt2 -type f | sort -V | tail -n 1)
+          if [ -n "$AAPT2" ]; then
+            BADGING=$("$AAPT2" dump badging hesabdari.apk)
+            echo "$BADGING" | head -n 25
+            echo "$BADGING" | grep -q "name='ir.hesabdari.novin'"
+            echo "$BADGING" | grep -q "versionName='1.0.4'"
+            echo "$BADGING" | grep -q "حسابداری"
+          fi
 
       - name: Upload APK Workflow Artifact
         uses: actions/upload-artifact@v4
@@ -91,19 +99,19 @@ jobs:
           path: hesabdari.apk
           if-no-files-found: error
 
-      - name: Publish Signed APK to GitHub Releases (v1.0.3 + update older tags)
+      - name: Publish Signed APK to GitHub Releases (v1.0.4 + update older tags)
         if: github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          TAG="v1.0.3"
-          TITLE="اپلیکیشن اندروید حسابداری — فروشگاه نوین آشپزخانه (نسخه ۱.۰.۳)"
-          NOTES="نسخهٔ ۱.۰.۳ اپلیکیشن اندروید **حسابداری** (فروشگاه **نوین آشپزخانه**):
-          - نام برنامه **حسابداری** با لوگوی اختصاصی موضوع حسابداری (دفتر کل، ماشین‌حساب و نمودار مالی) و نام فروشگاه **نوین آشپزخانه** در داخل برنامه
-          - رفع کامل صفحهٔ سیاه دوربین بارکدخوان و فعال‌سازی موتور ترکیبی اسکن زنده (ZXing + BarcodeDetector روی تک‌استریم زندهٔ دوربین)
-          - ساخت خودکار پوشهٔ اصلی **حسابداری** در حافظهٔ اصلی گوشی و ذخیرهٔ ۱۰۰٪ تمام فایل‌های خروجی و دانلودی برنامه مستقیماً در پوشهٔ **حسابداری**
-          - نمایش دقیق زیر نوار کنترل‌سنتر و وضعیت بالای گوشی (مشابه همدل) بدون کرش و با پشتیبانی کامل آفلاین و همگام‌سازی ابری."
-          for OLD_TAG in "v1.0.0" "v1.0.1" "v1.0.2"; do
+          TAG="v1.0.4"
+          TITLE="اپلیکیشن اندروید حسابداری — فروشگاه نوین آشپزخانه (نسخه ۱.۰.۴)"
+          NOTES="نسخهٔ ۱.۰.۴ اپلیکیشن اندروید **حسابداری** (فروشگاه **نوین آشپزخانه**):
+          - طراحی ۱۰۰٪ ریسپانسیو و تطبیق‌پذیر برای تمام اندازه‌های صفحه (گوشی‌های کوچک، معمولی، تبلت و دسکتاپ) بدون سرریز افقی، زوم‌اوت یا برش دکمه‌ها
+          - نصب تمیز و مستقل با شناسهٔ بستهٔ جدید (\`ir.hesabdari.novin\`)، آیکون و نام اختصاصی **حسابداری** در صفحهٔ اصلی اندروید و کروم (PWA/WebAPK) و بارگذاری فوری آفلاین و آنلاین از طریق \`ServiceWorkerController\`
+          - اصلاح فونت نوری ارقام درشت (\`AbarMid\`) و چیدمان دقیق کارت‌ها، شاخص‌ها، جداول، فرم‌ها و دسترسی‌های سریع
+          - اسکنر ترکیبی زندهٔ بارکد (ZXing آفلاین + BarcodeDetector) و ذخیرهٔ خودکار تمام فایل‌های خروجی در پوشهٔ اصلی **حسابداری** در حافظهٔ گوشی."
+          for OLD_TAG in "v1.0.0" "v1.0.1" "v1.0.2" "v1.0.3"; do
             if gh release view "$OLD_TAG" >/dev/null 2>&1; then
               gh release upload "$OLD_TAG" hesabdari.apk novin-ashpazkhaneh.apk --clobber || true
             fi
