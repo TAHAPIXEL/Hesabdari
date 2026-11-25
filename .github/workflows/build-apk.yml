@@ -101,7 +101,7 @@ jobs:
           if-no-files-found: error
 
       - name: Publish Signed APK to GitHub Releases (v1.0.7 + update older tags)
-        if: github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
+        if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/arena/') || github.event_name == 'workflow_dispatch'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
