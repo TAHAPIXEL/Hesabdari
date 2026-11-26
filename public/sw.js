@@ -1,4 +1,4 @@
-const CACHE_NAME = "hesabdari-novin-v18";
+const CACHE_NAME = "hesabdari-novin-v17";
 
 const CORE_ASSETS = [
   "/",
