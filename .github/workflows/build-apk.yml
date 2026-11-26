@@ -88,8 +88,8 @@ jobs:
             BADGING=$("$AAPT2" dump badging hesabdari.apk)
             echo "$BADGING" | head -n 25
             echo "$BADGING" | grep -q "name='ir.hesabdari.novin'"
-            echo "$BADGING" | grep -q "versionName='1.0.9'"
-            echo "$BADGING" | grep -q "versionCode='12'"
+            echo "$BADGING" | grep -q "versionName='1.0.10'"
+            echo "$BADGING" | grep -q "versionCode='13'"
             echo "$BADGING" | grep -q "حسابداری"
           fi
 
@@ -100,13 +100,13 @@ jobs:
           path: hesabdari.apk
           if-no-files-found: error
 
-      - name: Publish Signed APK to GitHub Releases (v1.0.9 + update older tags)
+      - name: Publish Signed APK to GitHub Releases (v1.0.10 + update older tags)
         if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/arena/') || github.event_name == 'workflow_dispatch'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
-          TAG="v1.0.9"
+          TAG="v1.0.10"
           TITLE="اپلیکیشن اندروید حسابداری — فروشگاه نوین آشپزخانه (نسخه ۱.۰.۹)"
           cat <<'EOF' > release-notes.md
           نسخهٔ ۱.۰.۹ اپلیکیشن اندروید **حسابداری** (فروشگاه **نوین آشپزخانه**):
@@ -127,7 +127,7 @@ jobs:
           - **لوگوی جدید مینیمال**
           - **تسویه کامل** به‌صورت پیش‌فرض در فروش و **یکپارچه‌سازی کارتخوان** (LAN/Wi-Fi، USB/Serial، سرویس ویندوز، Intent و TCP اندروید) با مبلغ دقیق ریالی
           - **اصلاح کنتراست تم روشن و تم شب:** دکمه‌ها، آیکون‌ها، متن‌ها و نشانگرهای کم‌دیدنی در هر دو تم خوانا شدند
-          - **ارتقای کش آفلاین به `v15`** و نصب مستقیم روی نسخهٔ قبلی بدون حذف اطلاعات کاربر.
+          - **ارتقای کش آفلاین به `v16`** و نصب مستقیم روی نسخهٔ قبلی بدون حذف اطلاعات کاربر.
           EOF
 
           upload_assets_to_release() {
