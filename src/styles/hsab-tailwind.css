@@ -1400,3 +1400,158 @@
     font-size:10.5pt;font-weight:800;letter-spacing:.12em;color:#000;direction:ltr;line-height:1.15;
   }
 }
+
+/* ===== دفتر کل — لایهٔ طراحی v1.1 (تطبیق با نمونهٔ تأییدشده) =====
+   این بلوک آخرین قاعده‌های فایل است؛ فقط ظاهر را تغییر می‌دهد و منطق برنامه را دست نمی‌زند. */
+:root{
+  --paper:#0B0B0F; --s0:#15151C; --s1:#1B1B23; --s2:#262631;
+  --ink:#F4F2EC; --ink2:#CFCDD6; --ink3:#A3A1AE;
+  --line:rgba(244,242,236,.10); --line2:rgba(244,242,236,.22);
+  --accent:#D4FF3A; --brass:#D4FF3A; --brass-dk:#D4FF3A; --brass-bg:rgba(212,255,58,.12);
+  --card-bg:#15151C; --top-bg:rgba(11,11,15,.90); --rail-bg:#0E0E13; --bar-bg:#111118;
+  --r1:14px; --r2:18px; --r3:22px;
+  --sh1:none; --sh2:0 18px 40px -14px rgba(0,0,0,.6);
+  --fill:#D4FF3A; --on-fill:#0B0B0F;
+  --hero-bg:#1A1A22; --hero-ink:#F4F2EC;
+  --bar-grad:linear-gradient(180deg,#D4FF3A 0%,#9CCB1E 100%);
+  --ring-track:rgba(244,242,236,.14);
+  --ruled:rgba(244,242,236,.035);
+  --edge:rgba(244,242,236,.16);
+}
+html[data-theme="light"]{
+  --paper:#F3EFE6; --s0:#FFFDF7; --s1:#F7F3EA; --s2:#EDE8DA;
+  --ink:#0B0B0F; --ink2:#34343E; --ink3:#5A5A66;
+  --line:rgba(11,11,15,.12); --line2:rgba(11,11,15,.24);
+  --accent:#0B0B0F; --brass:#2F5BFF; --brass-dk:#2F5BFF; --brass-bg:rgba(47,91,255,.10);
+  --card-bg:#FFFDF7; --top-bg:rgba(243,239,230,.94); --rail-bg:#F3EFE6; --bar-bg:#0B0B0F;
+  --fill:#0B0B0F; --on-fill:#D4FF3A;
+  --hero-bg:#0B0B0F; --hero-ink:#F3EFE6;
+  --bar-grad:linear-gradient(180deg,#3D6BFF 0%,#2F5BFF 100%);
+  --ring-track:rgba(243,239,230,.16);
+  --ruled:rgba(11,11,15,.055);
+  --edge:#0B0B0F;
+}
+body{
+  background-color:var(--paper)!important;
+  background-image:repeating-linear-gradient(to bottom,transparent 0 31px,var(--ruled) 31px 32px)!important;
+}
+html[data-theme="light"] body{background-color:var(--paper)!important}
+
+/* سربرگ بالا و سرعنوان صفحه: خط ضخیم مثل دفتر */
+html[data-theme] .top{box-shadow:none;border-bottom:2px solid var(--edge)}
+html[data-theme] .phead{border-bottom:3px solid var(--edge);padding-bottom:14px;margin-bottom:22px}
+html[data-theme="dark"] .phead{border-bottom-width:1px}
+.phead h1{letter-spacing:-.01em}
+
+/* کارت‌ها: لبهٔ مشکی ضخیم در روشن، لبهٔ ظریف در تاریک */
+html[data-theme] .card{border:2px solid var(--edge);border-radius:var(--r2);box-shadow:none;background:var(--card-bg);backdrop-filter:none;-webkit-backdrop-filter:none}
+html[data-theme="dark"] .card{border-width:1px;border-color:var(--line2)}
+html[data-theme] .card+.card{margin-top:16px}
+html[data-theme] .chead{background:transparent;border-bottom:2px solid var(--edge)}
+html[data-theme="dark"] .chead{border-bottom-width:1px;border-bottom-color:var(--line)}
+.chead h3 svg{color:var(--ink)}
+html[data-theme="dark"] .chead h3 svg{color:var(--brass)}
+html[data-theme] .kpi{background:var(--card-bg);border:2px solid var(--edge);border-radius:var(--r2);box-shadow:none}
+html[data-theme="dark"] .kpi{border-width:1px;border-color:var(--line2)}
+html[data-theme] .kpi b{color:var(--ink)}
+
+/* کارت هشدار کسری: زمینهٔ سبز اسیدی و نوار قرمز متحرک */
+html[data-theme] .card.card-alert{background:#D4FF3A;color:#0B0B0F;border-color:#0B0B0F}
+html[data-theme] .card-alert .chead{border-bottom-color:rgba(11,11,15,.85)}
+html[data-theme] .card-alert .chead h3{color:#0B0B0F}
+html[data-theme] .card-alert .chead h3 svg{color:#0B0B0F}
+html[data-theme] .card-alert .tk,html[data-theme] .card-alert .s{color:rgba(11,11,15,.72)}
+html[data-theme] .card-alert .row{border-color:rgba(11,11,15,.18)}
+html[data-theme] .card-alert .row .t{color:#0B0B0F}
+html[data-theme] .card-alert .cfoot{background:transparent;border-top-color:rgba(11,11,15,.85)}
+.ticker{overflow:hidden;border:2px solid #0B0B0F;border-radius:14px;background:#FF4D3D;color:#0B0B0F;margin:0 0 14px;padding:9px 0;direction:ltr}
+.ticker .tk-track{display:inline-block;white-space:nowrap;direction:rtl;font-weight:800;font-size:13.5px;line-height:1.5;animation:dkMarquee 28s linear infinite}
+.ticker .tk-track span{padding-inline:12px}
+@keyframes dkMarquee{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+
+/* هیرو: کارت مشکی با عدد بزرگ و حلقهٔ سهم امروز */
+html[data-theme] .hero{background:var(--hero-bg);color:var(--hero-ink);border:2px solid var(--edge);border-radius:var(--r3);box-shadow:none}
+html[data-theme="dark"] .hero{border-width:1px;border-color:var(--line2)}
+html[data-theme] .hero .band,html[data-theme] .hero .scrim,html[data-theme] .hero::before{display:none}
+html[data-theme] .hero .tk{color:rgba(243,239,230,.72)}
+html[data-theme] .hero .tk svg{color:#D4FF3A}
+html[data-theme] .hero .hnum b{color:var(--hero-ink);text-shadow:none}
+html[data-theme] .hero .hnum b.pos{color:#D4FF3A}
+html[data-theme] .hero .hnum b.neg{color:#FF7A66}
+html[data-theme] .hero .hnum small{color:rgba(243,239,230,.72)}
+html[data-theme] .hero .hrow>span{background:rgba(243,239,230,.06);border:1px solid rgba(243,239,230,.14);border-radius:14px}
+html[data-theme] .hero .hrow>span small{color:rgba(243,239,230,.72)}
+html[data-theme] .hero .hrow b{color:var(--hero-ink)}
+html[data-theme] .hero .hrow .pos,html[data-theme] .hero .hrow .pos b{color:#D4FF3A}
+html[data-theme] .hero .hrow .neg,html[data-theme] .hero .hrow .neg b{color:#FF7A66}
+html[data-theme] .hero .copy{background:transparent;border:1px solid rgba(243,239,230,.3);color:var(--hero-ink)}
+.hnum-row{display:flex;align-items:center;justify-content:space-between;gap:16px}
+.hnum-row .hnum{min-width:0}
+.dk-ring{width:96px;height:96px;flex:none}
+.dk-ring circle{fill:none;stroke-width:9}
+.dk-ring .rt{stroke:var(--ring-track)}
+.dk-ring .rp{stroke:#D4FF3A;stroke-linecap:round}
+.dk-ring text{font-family:var(--font-high);font-size:17px;font-weight:900;fill:var(--hero-ink)}
+.ring-wrap{display:flex;flex-direction:column;align-items:center;gap:4px;flex:none}
+.ring-cap{font-size:11px;color:rgba(243,239,230,.72);text-align:center;line-height:1.4;white-space:nowrap}
+
+/* عملیات سریع: کاشی‌های بزرگ؛ «فاکتور تازه» سیاه/اسیدی */
+html[data-theme] .qa button{background:var(--card-bg);border:2px solid var(--edge);border-radius:var(--r2);box-shadow:none;color:var(--ink)}
+html[data-theme="dark"] .qa button{border-width:1px;border-color:var(--line2)}
+html[data-theme] .qa button:nth-child(2){background:var(--fill);color:var(--on-fill);border-color:var(--fill)}
+html[data-theme] .qa button:nth-child(2) .ico{background:rgba(127,127,127,.18);color:var(--on-fill);border-color:transparent}
+html[data-theme] .qa button:hover{box-shadow:none;transform:translateY(-1px)}
+
+/* دکمه‌ها و تراشه‌ها */
+html[data-theme] .btn{border:2px solid var(--edge);border-radius:var(--r1);background:var(--s0);color:var(--ink);box-shadow:none}
+html[data-theme="dark"] .btn{border-width:1px;border-color:var(--line2)}
+html[data-theme] .btn:hover{border-color:var(--ink);background:var(--s1)}
+html[data-theme] .btn.p{background:var(--fill);color:var(--on-fill);border-color:var(--fill);box-shadow:none}
+html[data-theme] .btn.p:hover{filter:none;background:var(--fill);color:var(--on-fill)}
+html[data-theme] .chip{border:2px solid var(--edge);border-radius:99px;background:var(--card-bg);box-shadow:none}
+html[data-theme="dark"] .chip{border-width:1px;border-color:var(--line2)}
+html[data-theme] .chip.on{background:var(--fill);color:var(--on-fill);border-color:var(--fill);box-shadow:none}
+html[data-theme] .seg{border:2px solid var(--edge);border-radius:var(--r2);background:var(--card-bg)}
+html[data-theme="dark"] .seg{border-width:1px;border-color:var(--line2)}
+html[data-theme] .seg button.on{background:var(--fill);color:var(--on-fill);box-shadow:none}
+
+/* نمودار هفتگی: میله‌های آبی روشن / اسیدی تاریک */
+.bars>div>span{background:var(--bar-grad);box-shadow:none}
+
+/* داک شناور پایین (موبایل) با دکمهٔ مرکزی اسیدی */
+@media (max-width:1023px){
+  :root{--bar:74px}
+  html[data-theme] .tabbar{
+    inset-inline:auto;left:12px;right:12px;bottom:calc(10px + env(safe-area-inset-bottom,0px));width:auto;max-width:none;
+    border:1px solid rgba(244,242,236,.08);border-radius:26px;background:var(--bar-bg);
+    padding:6px 8px;box-shadow:0 18px 40px -10px rgba(11,11,15,.5);
+  }
+  html[data-theme="dark"] .tabbar{border-color:var(--line2)}
+  html[data-theme] .tab{color:#B9B7C2;gap:4px}
+  html[data-theme] .tab.on{color:#D4FF3A}
+  html[data-theme] .tab.on::before{display:none}
+  html[data-theme] .tab.mid{color:#F4F2EC}
+  html[data-theme] .tab.mid .bub{width:60px;height:60px;border-radius:50%;background:#D4FF3A;color:#0B0B0F;margin-top:-30px;border:4px solid var(--paper);box-shadow:0 10px 24px rgba(212,255,58,.32)}
+  html[data-theme] .tab.mid.on .bub{box-shadow:0 10px 24px rgba(212,255,58,.45)}
+  html[data-theme] .tab.mid.on{color:#D4FF3A}
+}
+@media (max-width:1023px){
+  html[data-theme] .page{padding-bottom:calc(var(--bar) + 28px)}
+}
+
+/* ناوبری دسکتاپ */
+html[data-theme] .rail{background:var(--rail-bg);border-inline-end:2px solid var(--edge);backdrop-filter:none;-webkit-backdrop-filter:none}
+html[data-theme="dark"] .rail{border-inline-end-width:1px;border-inline-end-color:var(--line)}
+html[data-theme] .rail .tab.on{background:var(--fill);color:var(--on-fill);box-shadow:none}
+html[data-theme] .rail .tab.on svg{color:var(--on-fill);transform:none}
+html[data-theme] .rail .tab.mid .bub{background:var(--fill);color:var(--on-fill)}
+html[data-theme] .rail .tab.mid .bub svg{color:var(--on-fill)!important}
+html[data-theme] .rail .tab:hover{background:var(--s1)}
+
+/* وضعیت‌ها و متن کارت هشدار: خوانا در هر دو تم */
+html[data-theme="light"] .badge.b-ok{background:#DDF5E6;color:#03563D;border-color:rgba(3,86,61,.28)}
+html[data-theme="dark"] .badge.b-ok{background:rgba(212,255,58,.12);color:#D4FF3A;border-color:rgba(212,255,58,.32)}
+html[data-theme="light"] #saveState{color:#03563D}
+html[data-theme] .card-alert,html[data-theme] .card-alert p,html[data-theme] .card-alert b,html[data-theme] .card-alert .row span{color:#0B0B0F}
+html[data-theme] .card-alert p,html[data-theme] .card-alert .s{color:rgba(11,11,15,.78)}
+html[data-theme] .card-alert .badge.b-out{background:#0B0B0F;color:#D4FF3A;border-color:#0B0B0F}
