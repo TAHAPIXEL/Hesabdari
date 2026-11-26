@@ -92,7 +92,7 @@ public class MainActivity extends Activity {
     private static final int REQ_GRANT_MISSING = 1005;
     private static final int REQ_POS_INTENT = 1006;
     private static final int APP_VERSION_CODE = 10;
-    private static final String CACHED_HTML_NAME = "cached_hsab_v14.html";
+    private static final String CACHED_HTML_NAME = "cached_hsab_v15.html";
     private static final String PREFS_NAME = "hesabdari_native_prefs";
     private static final String PREF_THEME_KEY = "app.theme";
     private static final String PREF_VER_KEY = "app.installed_version";
@@ -544,7 +544,7 @@ public class MainActivity extends Activity {
         ws.setTextZoom(100);
         ws.setCacheMode(WebSettings.LOAD_DEFAULT);
         ws.setMixedContentMode(WebSettings.MIXED_CONTENT_NEVER_ALLOW);
-        ws.setUserAgentString(ws.getUserAgentString() + " HesabdariAPK/1.0.8");
+        ws.setUserAgentString(ws.getUserAgentString() + " HesabdariAPK/1.0.9");
 
         CookieManager cm = CookieManager.getInstance();
         cm.setAcceptCookie(true);
