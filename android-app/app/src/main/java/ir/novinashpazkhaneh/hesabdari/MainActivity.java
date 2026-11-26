@@ -28,6 +28,8 @@ import android.print.PrintManager;
 import android.provider.MediaStore;
 import android.provider.Settings;
 import android.util.Base64;
+import androidx.core.app.NotificationManagerCompat;
+import org.json.JSONObject;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
@@ -58,12 +60,15 @@ import androidx.core.view.WindowInsetsCompat;
 import androidx.core.view.WindowInsetsControllerCompat;
 
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
+import java.net.InetSocketAddress;
+import java.net.Socket;
 import java.net.URL;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
@@ -84,8 +89,10 @@ public class MainActivity extends Activity {
     private static final int REQ_FILE_CHOOSER = 1002;
     private static final int REQ_WEB_CAMERA = 1003;
     private static final int REQ_MANAGE_STORAGE = 1004;
+    private static final int REQ_GRANT_MISSING = 1005;
+    private static final int REQ_POS_INTENT = 1006;
     private static final int APP_VERSION_CODE = 10;
-    private static final String CACHED_HTML_NAME = "cached_hsab_v13.html";
+    private static final String CACHED_HTML_NAME = "cached_hsab_v14.html";
     private static final String PREFS_NAME = "hesabdari_native_prefs";
     private static final String PREF_THEME_KEY = "app.theme";
     private static final String PREF_VER_KEY = "app.installed_version";
@@ -512,6 +519,7 @@ public class MainActivity extends Activity {
         String lower = safeName.toLowerCase();
         if (lower.endsWith(".json")) return "application/json";
         if (lower.endsWith(".csv")) return "text/csv";
+        if (lower.endsWith(".xlsx")) return "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
         if (lower.endsWith(".pdf")) return "application/pdf";
         if (lower.endsWith(".png")) return "image/png";
         if (lower.endsWith(".jpg") || lower.endsWith(".jpeg")) return "image/jpeg";
@@ -536,7 +544,7 @@ public class MainActivity extends Activity {
         ws.setTextZoom(100);
         ws.setCacheMode(WebSettings.LOAD_DEFAULT);
         ws.setMixedContentMode(WebSettings.MIXED_CONTENT_NEVER_ALLOW);
-        ws.setUserAgentString(ws.getUserAgentString() + " HesabdariAPK/1.0.7");
+        ws.setUserAgentString(ws.getUserAgentString() + " HesabdariAPK/1.0.8");
 
         CookieManager cm = CookieManager.getInstance();
         cm.setAcceptCookie(true);
@@ -956,8 +964,9 @@ public class MainActivity extends Activity {
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         ensureHesabdariFolderCreated(true);
+        if (requestCode == REQ_GRANT_MISSING) notifyWebPermsChanged();
 
-        if ((requestCode == REQ_WEB_CAMERA || requestCode == REQ_STARTUP_PERMS) && pendingWebCameraRequest != null) {
+        if ((requestCode == REQ_WEB_CAMERA || requestCode == REQ_STARTUP_PERMS || requestCode == REQ_GRANT_MISSING) && pendingWebCameraRequest != null) {
             PermissionRequest req = pendingWebCameraRequest;
             pendingWebCameraRequest = null;
             try {
@@ -980,6 +989,22 @@ public class MainActivity extends Activity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == REQ_POS_INTENT) {
+            JSONObject o = new JSONObject();
+            try {
+                if (data == null) {
+                    o.put("approved", false);
+                    o.put("message", resultCode == Activity.RESULT_CANCELED ? "تراکنش توسط کاربر لغو شد" : "پاسخی از اپلیکیشن کارتخوان دریافت نشد");
+                } else {
+                    o.put("approved", data.getBooleanExtra("approved", false));
+                    o.put("rrn", nz(data.getStringExtra("rrn")));
+                    o.put("code", nz(data.getStringExtra("code")));
+                    o.put("message", nz(data.getStringExtra("message")));
+                }
+            } catch (Exception ignored) {}
+            deliverPosResult(o.toString());
+            return;
+        }
         if (requestCode == REQ_MANAGE_STORAGE) {
             ensureHesabdariFolderCreated(true);
             return;
@@ -1083,6 +1108,127 @@ public class MainActivity extends Activity {
         super.onDestroy();
     }
 
+    private static String nz(String v) { return v == null ? "" : v; }
+
+    private void deliverPosResult(final String json) {
+        runOnUiThread(() -> {
+            if (webView == null) return;
+            webView.evaluateJavascript("window.__novinPosResult&&window.__novinPosResult(" + JSONObject.quote(json) + ");", null);
+        });
+    }
+
+    private void notifyWebPermsChanged() {
+        runOnUiThread(() -> {
+            if (webView == null) return;
+            webView.evaluateJavascript("window.__novinPermsChanged&&window.__novinPermsChanged();", null);
+        });
+    }
+
+    private boolean hasStoragePermissionForSaving() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) return true;
+        return checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED;
+    }
+
+    private String buildPermissionsJson() {
+        JSONObject o = new JSONObject();
+        try {
+            o.put("camera", checkSelfPermission(Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED);
+            o.put("storage", hasStoragePermissionForSaving());
+            o.put("notifications", NotificationManagerCompat.from(this).areNotificationsEnabled());
+            o.put("sdk", Build.VERSION.SDK_INT);
+        } catch (Exception ignored) {}
+        return o.toString();
+    }
+
+    private void requestMissingPermissionsNow(String which) {
+        boolean all = which == null || which.isEmpty() || "all".equals(which);
+        ArrayList<String> need = new ArrayList<>();
+        if ((all || "camera".equals(which))
+                && checkSelfPermission(Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
+            need.add(Manifest.permission.CAMERA);
+        }
+        if ((all || "storage".equals(which))
+                && Build.VERSION.SDK_INT < Build.VERSION_CODES.Q
+                && checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+            need.add(Manifest.permission.WRITE_EXTERNAL_STORAGE);
+        }
+        if ((all || "notifications".equals(which))
+                && Build.VERSION.SDK_INT >= 33
+                && checkSelfPermission("android.permission.POST_NOTIFICATIONS") != PackageManager.PERMISSION_GRANTED) {
+            need.add("android.permission.POST_NOTIFICATIONS");
+        }
+        if (need.isEmpty()) {
+            notifyWebPermsChanged();
+            return;
+        }
+        requestPermissions(need.toArray(new String[0]), REQ_GRANT_MISSING);
+    }
+
+    private void openAppSettingsNow() {
+        runOnUiThread(() -> {
+            try {
+                Intent i = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+                i.setData(Uri.parse("package:" + getPackageName()));
+                startActivity(i);
+            } catch (Exception ignored) {}
+        });
+    }
+
+    private void posTcpAsync(final String host, final int port, final String body, final int timeoutMs) {
+        bgExecutor.execute(() -> {
+            String result;
+            try (Socket sock = new Socket()) {
+                sock.connect(new InetSocketAddress(host, port), Math.min(timeoutMs, 10000));
+                sock.setSoTimeout(timeoutMs);
+                OutputStream os = sock.getOutputStream();
+                os.write((body + "\n").getBytes(StandardCharsets.UTF_8));
+                os.flush();
+                InputStream is = sock.getInputStream();
+                ByteArrayOutputStream buf = new ByteArrayOutputStream();
+                int b;
+                while ((b = is.read()) != -1) {
+                    if (b == '\n') break;
+                    buf.write(b);
+                }
+                String line = buf.toString("UTF-8").trim();
+                if (line.isEmpty()) throw new IOException("NO_RESPONSE");
+                result = line;
+            } catch (Exception e) {
+                JSONObject err = new JSONObject();
+                try {
+                    err.put("approved", false);
+                    String m = e instanceof java.net.SocketTimeoutException ? "TIMEOUT" : String.valueOf(e.getMessage());
+                    err.put("message", "ارتباط با کارتخوان برقرار نشد (" + m + ")");
+                } catch (Exception ignored) {}
+                result = err.toString();
+            }
+            deliverPosResult(result);
+        });
+    }
+
+    private void posIntentNow(final String pkg, final String body) {
+        runOnUiThread(() -> {
+            try {
+                JSONObject req = new JSONObject(body);
+                Intent i = new Intent("ir.hesabdari.POS_SALE");
+                if (pkg != null && !pkg.trim().isEmpty()) i.setPackage(pkg.trim());
+                i.putExtra("amount", req.optLong("amount", 0L));
+                i.putExtra("currency", req.optString("currency", "IRR"));
+                i.putExtra("invoiceNo", req.optString("invoiceNo", ""));
+                i.putExtra("requestId", req.optString("requestId", ""));
+                i.putExtra("requestJson", body);
+                startActivityForResult(i, REQ_POS_INTENT);
+            } catch (Exception e) {
+                JSONObject err = new JSONObject();
+                try {
+                    err.put("approved", false);
+                    err.put("message", "اپلیکیشن کارتخوان پیدا نشد یا باز نشد");
+                } catch (Exception ignored) {}
+                deliverPosResult(err.toString());
+            }
+        });
+    }
+
     private final class AndroidBridge {
 
         @JavascriptInterface
@@ -1162,6 +1308,44 @@ public class MainActivity extends Activity {
                 } catch (Throwable ignored) {}
                 applySystemBarAppearance();
             });
+        }
+
+        @JavascriptInterface
+        public void requestMissingPermissions(String which) {
+            runOnUiThread(() -> requestMissingPermissionsNow(which));
+        }
+
+        @JavascriptInterface
+        public String getPermissionsJson() {
+            return buildPermissionsJson();
+        }
+
+        @JavascriptInterface
+        public void openAppSettings() {
+            openAppSettingsNow();
+        }
+
+        @JavascriptInterface
+        public void posTcpSend(String host, String port, String body, String timeoutMs) {
+            int p;
+            int t;
+            try { p = Integer.parseInt(String.valueOf(port).trim()); } catch (Exception e) { p = -1; }
+            try { t = Integer.parseInt(String.valueOf(timeoutMs).trim()); } catch (Exception e) { t = 60000; }
+            if (p <= 0 || p > 65535 || host == null || host.trim().isEmpty()) {
+                JSONObject err = new JSONObject();
+                try {
+                    err.put("approved", false);
+                    err.put("message", "آدرس یا پورت کارتخوان معتبر نیست");
+                } catch (Exception ignored) {}
+                deliverPosResult(err.toString());
+                return;
+            }
+            posTcpAsync(host.trim(), p, body == null ? "{}" : body, t);
+        }
+
+        @JavascriptInterface
+        public void posIntent(String pkg, String body) {
+            posIntentNow(pkg, body == null ? "{}" : body);
         }
 
         @JavascriptInterface
